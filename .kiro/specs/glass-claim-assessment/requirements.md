@@ -99,21 +99,23 @@ This document covers the full scope of the Phase 1 pilot: email intake, consent 
 
 ---
 
-### Requirement 4: Photo Validation
+### Requirement 4: Photo Validation and Camera-Only Enforcement
 
-**User Story:** As the System, I want to validate each uploaded photo before accepting it, so that only usable evidence is retained for assessment.
+**User Story:** As the System, I want to validate each uploaded photo before accepting it and ensure photos are taken live with the device camera (not uploaded from camera roll), so that only fresh, usable evidence is retained for assessment and fraud risk is minimized.
 
 #### Acceptance Criteria
 
-1. WHEN a photo is uploaded, THE System SHALL validate: supported MIME type, readable file, file size within configured limit, minimum resolution met, acceptable sharpness, acceptable brightness, likely correct framing for the slot type, and likely not a duplicate of another photo in the same claim
-2. WHEN a photo passes all validation checks, THE System SHALL assign it outcome accepted
-3. WHEN a photo passes validation but has quality warnings, THE System SHALL assign it outcome accepted_with_warning or accepted_low_quality as appropriate
-4. WHEN a photo fails one or more validation checks, THE System SHALL assign it outcome rejected_retake_required
-5. WHEN a fixed photo slot is rejected, THE System SHALL request a retake for that slot
-6. WHEN a damage photo is rejected, THE System SHALL allow the Policyholder to submit a replacement damage photo
-7. THE System SHALL assign a claim-level evidence sufficiency outcome of: in_progress (photo set not yet complete), sufficient (all slots accepted), sufficient_with_warnings (accepted with quality warnings), or insufficient (required slots rejected or missing)
-8. THE System SHALL NOT issue a final assessment while claim-level evidence sufficiency is insufficient
-9. WHEN photo validation completes for a photo, THE System SHALL emit a photo.validated or photo.rejected event
+1. WHEN using the PWA channel, THE System SHALL enforce camera-only capture by using the `capture="environment"` attribute on file input elements to prevent gallery/camera roll access
+2. WHEN a photo is uploaded, THE System SHALL validate: supported MIME type, readable file, file size within configured limit, minimum resolution met, acceptable sharpness, acceptable brightness, likely correct framing for the slot type, likely not a duplicate of another photo in the same claim, and EXIF timestamp indicates recent capture (within last 10 minutes)
+3. WHEN EXIF timestamp validation fails or indicates the photo was not recently captured, THE System SHALL assign it outcome rejected_retake_required with reason "photo_not_recently_captured"
+4. WHEN a photo passes all validation checks including EXIF timestamp validation, THE System SHALL assign it outcome accepted
+5. WHEN a photo passes validation but has quality warnings, THE System SHALL assign it outcome accepted_with_warning or accepted_low_quality as appropriate
+6. WHEN a photo fails one or more validation checks, THE System SHALL assign it outcome rejected_retake_required
+7. WHEN a fixed photo slot is rejected, THE System SHALL request a retake for that slot
+8. WHEN a damage photo is rejected, THE System SHALL allow the Policyholder to submit a replacement damage photo
+9. THE System SHALL assign a claim-level evidence sufficiency outcome of: in_progress (photo set not yet complete), sufficient (all slots accepted), sufficient_with_warnings (accepted with quality warnings), or insufficient (required slots rejected or missing)
+10. THE System SHALL NOT issue a final assessment while claim-level evidence sufficiency is insufficient
+11. WHEN photo validation completes for a photo, THE System SHALL emit a photo.validated or photo.rejected event
 
 ---
 
@@ -182,18 +184,21 @@ This document covers the full scope of the Phase 1 pilot: email intake, consent 
 
 ### Requirement 9: Manual Review
 
-**User Story:** As a Reviewer, I want a first-class manual review workflow, so that I can handle claims that cannot be automatically decided.
+**User Story:** As a Reviewer, I want a first-class manual review workflow that preserves the original machine assessment as an immutable snapshot, so that I can handle claims that cannot be automatically decided while maintaining full audit trail.
 
 #### Acceptance Criteria
 
-1. THE System SHALL route a claim to manual review when any of the following triggers fire: low confidence, insufficient evidence, VIN mismatch, blocking rule conflict, dependency failure, unclear damage outcome, suspicious signals, or exhausted retries
+1. THE System SHALL route a claim to manual review when any of the following triggers fire: low confidence, insufficient evidence, VIN mismatch, blocking rule conflict, dependency failure, unclear damage outcome, suspicious signals, exhausted retries, or insurer-initiated manual review request
 2. WHEN a claim enters manual review, THE System SHALL emit a decision.manual_review_triggered event
-3. THE System SHALL provide a manual review queue showing all claims pending review
-4. A Reviewer SHALL be able to perform the following actions on a queued claim: approve machine result, override to repair, override to replace, request retake, request additional damage photo, mark insufficient evidence, or reject for processing
-5. WHEN a Reviewer overrides the machine assessment, THE System SHALL store the override flag, override reason code, and reviewer notes
-6. THE System SHALL preserve the original machine assessment snapshot and make it retrievable after any override
-7. THE System SHALL record: queue time, review start time, review completion time, reviewer ID, trigger reasons, machine assessment snapshot, final reviewed outcome, override flag, override reason code, and reviewer notes
-8. WHEN a manual review decision is recorded, THE System SHALL emit a decision.overridden event (if overridden) or decision.generated event (if approved)
+3. WHEN a claim enters manual review, THE System SHALL create an immutable snapshot of the machine assessment (including all prerequisite checks, confidence scores, damage analysis results, and decision reasoning) and store it permanently in the manual_reviews collection
+4. THE System SHALL provide a manual review queue showing all claims pending review with trigger reasons and machine assessment summary
+5. A Reviewer SHALL be able to perform the following actions on a queued claim: approve machine result (if machine suggested repair/replace), override to repair, override to replace, request retake, request additional damage photo, mark insufficient evidence, or reject for processing
+6. WHEN a Reviewer approves the machine result, THE System SHALL use the machine's original decision as the final decision and set override_flag to false
+7. WHEN a Reviewer overrides the machine assessment, THE System SHALL store the override_flag as true, override_reason_code, and reviewer_notes, while preserving the original machine assessment snapshot unchanged
+8. THE original machine assessment snapshot SHALL remain immutable and retrievable after any reviewer action - it SHALL NOT be modified or deleted
+9. THE System SHALL record: queue_time, review_start_time, review_completion_time, reviewer_id, trigger_reasons, machine_assessment_snapshot (immutable), final_reviewed_outcome, override_flag, override_reason_code, reviewer_notes, and manual_trigger_reason (if insurer-initiated)
+10. WHEN a manual review decision is recorded, THE System SHALL emit a decision.overridden event (if overridden) or decision.generated event (if approved)
+11. THE System SHALL provide audit trail showing both the original machine assessment and the final reviewer decision for every manually reviewed claim
 
 ---
 
@@ -298,7 +303,49 @@ This document covers the full scope of the Phase 1 pilot: email intake, consent 
 
 ---
 
-### Requirement 16: Operating Modes
+### Requirement 17: Insurer Dashboard and Portal
+
+**User Story:** As an Insurer, I want a comprehensive web dashboard to view all my submitted claims, track their progress, initiate manual reviews, and manage my account, so that I have full visibility and control over my claims processing.
+
+#### Acceptance Criteria
+
+1. THE System SHALL provide a web-based insurer dashboard accessible via secure authentication
+2. THE dashboard SHALL display all claims submitted by the insurer with current status, submission date, and progress indicators
+3. THE dashboard SHALL allow filtering and searching claims by claim number, status, date range, and policyholder details
+4. THE dashboard SHALL display detailed claim information including photos, damage analysis, VIN data, and machine assessment results
+5. THE dashboard SHALL provide a "Send to Manual Review" button for any completed automated assessment, regardless of confidence level
+6. WHEN an insurer initiates manual review, THE System SHALL require selection of a reason (Quality Check, High Value, Suspicious Activity, Training, Customer Request, Other)
+7. THE dashboard SHALL display a manual review queue showing all claims pending review with trigger reasons and priority levels
+8. THE dashboard SHALL allow reviewers to approve machine results, override decisions, request retakes, or mark claims as insufficient evidence
+9. THE dashboard SHALL provide downloadable reports and analytics including processing times, override rates, and decision accuracy
+10. THE dashboard SHALL allow bulk operations for sending multiple claims to manual review
+11. THE dashboard SHALL provide real-time status updates and notifications for claim progress
+12. THE dashboard SHALL maintain session security with automatic logout and audit logging of all user actions
+
+---
+
+### Requirement 18: Internal Admin Interface
+
+**User Story:** As a System Administrator, I want a comprehensive admin interface to manage multiple insurance customers, monitor system performance, oversee manual reviews, and configure system settings, so that I can efficiently operate and scale the platform.
+
+#### Acceptance Criteria
+
+1. THE System SHALL provide a web-based admin interface accessible via secure authentication with role-based access control
+2. THE admin interface SHALL display a multi-customer dashboard showing all insurers, their claim volumes, processing statistics, and system health metrics
+3. THE admin interface SHALL allow customer management including onboarding new insurers, configuring their settings, and managing their access
+4. THE admin interface SHALL provide system monitoring including database performance, API response times, error rates, and processing queue status
+5. THE admin interface SHALL display a global manual review oversight view showing all pending reviews across all customers (read-only)
+6. THE admin interface SHALL provide analytics and reporting across all customers including processing volumes, accuracy metrics, and system utilization
+7. THE admin interface SHALL allow system configuration including operating modes, confidence thresholds, retry limits, and notification settings
+8. THE admin interface SHALL provide audit trail access for compliance and troubleshooting across all customers and system operations
+9. THE admin interface SHALL allow manual intervention for stuck claims, system maintenance, and emergency overrides
+10. THE admin interface SHALL provide customer support tools including claim lookup, status tracking, and issue resolution
+11. THE admin interface SHALL maintain comprehensive audit logging of all admin actions and system changes
+12. THE admin interface SHALL support multi-tenant data isolation ensuring customers cannot access each other's data
+
+---
+
+### Requirement 19: Operating Modes
 
 **User Story:** As a System operator, I want to configure the level of automation, so that I can control risk during the pilot.
 

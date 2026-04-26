@@ -16,7 +16,7 @@ The Glass Claim Assessment System is a Phase 1 controlled pilot for windscreen-o
 
 ### Scope
 
-**In scope:** windscreen claims only, email inbox intake, PWA or WhatsApp claimant journey, consent/legal notice, photo upload/validation/retake, VIN enrichment, structured damage analysis, deterministic repair/replace rules, manual review workflow and override tracking, insurer-facing structured JSON output, PostgreSQL persistence, event logging and audit trail, core security controls.
+**In scope:** windscreen claims only, email inbox intake, PWA or WhatsApp claimant journey, consent/legal notice, photo upload/validation/retake, VIN enrichment, structured damage analysis, deterministic repair/replace rules, manual review workflow and override tracking, insurer-facing structured JSON output, insurer web dashboard with manual review interface, internal admin interface for multi-customer management, PostgreSQL persistence, event logging and audit trail, core security controls.
 
 **Out of scope:** non-windscreen glass claims, deep production carrier integration, self-serve insurer admin, white-label branding, full enterprise SSO, advanced fraud detection as primary feature, full multi-tenant productization, model retraining pipeline.
 
@@ -24,7 +24,7 @@ The Glass Claim Assessment System is a Phase 1 controlled pilot for windscreen-o
 
 ## Architecture
 
-### Four-Layer Architecture
+### Four-Layer Architecture with UI Components
 
 ```mermaid
 graph TB
@@ -34,6 +34,12 @@ graph TB
         WhatsAppAPI[WhatsApp Business API]
         VINDecoder[VIN Decoder API]
         ObjectStore[Private Object Storage]
+    end
+
+    subgraph "User Interface Layer"
+        InsurerDashboard[Insurer Dashboard\nClaims + Manual Review]
+        AdminInterface[Internal Admin Interface\nMulti-Customer Management]
+        ClaimantPWA[Claimant PWA\nPhoto Capture Journey]
     end
 
     subgraph "Intake Layer"
@@ -91,6 +97,15 @@ graph TB
     ResultFormatter --> EventStore
     EventStore --> PostgreSQL
     JSONDelivery --> PostgreSQL
+    
+    %% UI Connections
+    InsurerDashboard -->|View Claims| PostgreSQL
+    InsurerDashboard -->|Manual Review Trigger| ManualReviewQueue
+    InsurerDashboard -->|Review Actions| ManualReviewQueue
+    AdminInterface -->|Multi-Customer View| PostgreSQL
+    AdminInterface -->|System Config| DecisionRules
+    ClaimantPWA -->|Photo Upload| PhotoUploadService
+    ClaimantPWA -->|Consent| ConsentHandler
 ```
 
 ### Claim Lifecycle Sequence
@@ -150,11 +165,14 @@ sequenceDiagram
 | Mailbox polling | IMAP client (e.g. `imapflow` for Node.js) |
 | Scheduler | `node-cron` or system cron, 15-minute interval |
 | Notifications | Twilio SMS + WhatsApp Business API |
-| Photo capture | PWA (browser camera API) + WhatsApp media messages |
+| Photo capture | PWA (browser camera API with `capture="environment"`) + WhatsApp media messages |
 | Object storage | Private bucket, signed upload/read URLs |
 | Database | PostgreSQL 17 (`glass_claims_db`, `glass_user`) |
 | VIN decode | External VIN Decoder API |
 | Damage analysis | Computer vision model (TensorFlow / PyTorch) |
+| Frontend | React/TypeScript with responsive design |
+| Authentication | JWT tokens with role-based access control |
+| API Layer | RESTful APIs with OpenAPI documentation |
 
 ---
 
@@ -329,7 +347,7 @@ type PhotoValidationOutcome =
 
 ### 7. Photo Validation Service
 
-Runs per-photo checks and assigns a validation outcome. Updates claim-level evidence sufficiency.
+Runs per-photo checks including camera-only enforcement and assigns a validation outcome. Updates claim-level evidence sufficiency.
 
 ```typescript
 interface PhotoValidationResult {
@@ -345,8 +363,11 @@ interface PhotoValidationResult {
     brightnessAcceptable: boolean;
     likelyCorrectFraming: boolean;
     likelyNotDuplicate: boolean;
+    exifTimestampValid: boolean;        // NEW: validates recent capture
+    capturedWithinTimeLimit: boolean;   // NEW: within last 10 minutes
   };
   warnings: string[];
+  rejectionReason?: 'photo_not_recently_captured' | 'quality_insufficient' | 'framing_incorrect';
 }
 
 type EvidenceSufficiency = 'in_progress' | 'sufficient' | 'sufficient_with_warnings' | 'insufficient';
@@ -458,6 +479,8 @@ interface ManualReviewRecord {
   overrideFlag: boolean;
   overrideReasonCode?: string;
   reviewerNotes?: string;
+  manualTriggerReason?: string;  // NEW: reason if insurer-initiated
+  triggerSource: 'automatic' | 'insurer_initiated';  // NEW: trigger source
 }
 
 type ReviewerAction =
@@ -499,6 +522,118 @@ interface InsurerJsonOutput {
   rules_version: string;
 }
 ```
+
+---
+
+### 13. Insurer Dashboard Interface
+
+Web-based dashboard for insurers to manage their claims, initiate manual reviews, and track progress.
+
+```typescript
+interface InsurerDashboardState {
+  claims: ClaimSummary[];
+  manualReviewQueue: ManualReviewItem[];
+  filters: ClaimFilters;
+  analytics: InsurerAnalytics;
+}
+
+interface ClaimSummary {
+  claimId: string;
+  claimNumber: string;
+  policyholderName: string;
+  submittedAt: Date;
+  currentStatus: string;
+  machineAssessment?: {
+    outcome: DecisionOutcome;
+    confidence: number;
+    canTriggerManualReview: boolean;
+  };
+  manualReviewStatus?: 'pending' | 'in_progress' | 'completed';
+}
+
+interface ManualReviewTrigger {
+  claimId: string;
+  reason: 'quality_check' | 'high_value' | 'suspicious_activity' | 'training' | 'customer_request' | 'other';
+  priority: 'urgent' | 'normal' | 'training';
+  notes?: string;
+}
+
+interface ReviewerAction {
+  action: 'approve_machine_result' | 'override_to_repair' | 'override_to_replace' | 'request_retake' | 'mark_insufficient';
+  reasonCode?: string;
+  notes?: string;
+}
+```
+
+**Dashboard Features:**
+- Claims overview with status tracking and filtering
+- Manual review trigger for any completed assessment
+- Integrated manual review queue and reviewer actions
+- Real-time status updates and notifications
+- Downloadable reports and analytics
+- Bulk operations for multiple claims
+
+---
+
+### 14. Internal Admin Interface
+
+Multi-tenant admin interface for managing customers, monitoring system performance, and overseeing operations.
+
+```typescript
+interface AdminDashboardState {
+  customers: CustomerSummary[];
+  systemMetrics: SystemHealthMetrics;
+  globalReviewQueue: GlobalManualReviewItem[];
+  analytics: GlobalAnalytics;
+}
+
+interface CustomerSummary {
+  customerId: string;
+  insurerName: string;
+  claimsThisMonth: number;
+  processingStats: {
+    averageProcessingTime: number;
+    automationRate: number;
+    overrideRate: number;
+  };
+  systemHealth: 'healthy' | 'warning' | 'critical';
+}
+
+interface SystemHealthMetrics {
+  databasePerformance: {
+    connectionPool: number;
+    queryLatency: number;
+    errorRate: number;
+  };
+  processingQueues: {
+    emailIntake: number;
+    photoValidation: number;
+    vinEnrichment: number;
+    damageAnalysis: number;
+    manualReview: number;
+  };
+  apiMetrics: {
+    responseTime: number;
+    errorRate: number;
+    throughput: number;
+  };
+}
+
+interface CustomerManagement {
+  onboardNewCustomer: (details: CustomerOnboardingDetails) => Promise<void>;
+  updateCustomerSettings: (customerId: string, settings: CustomerSettings) => Promise<void>;
+  configureOperatingMode: (customerId: string, mode: OperatingMode) => Promise<void>;
+  manageUserAccess: (customerId: string, users: UserAccessConfig[]) => Promise<void>;
+}
+```
+
+**Admin Features:**
+- Multi-customer dashboard with health monitoring
+- Customer onboarding and configuration management
+- Global manual review oversight (read-only)
+- System performance monitoring and alerting
+- Analytics and reporting across all customers
+- Audit trail access and compliance tools
 
 ---
 
@@ -636,11 +771,14 @@ CREATE TABLE manual_reviews (
     final_reviewed_outcome    VARCHAR(50),
     override_flag             BOOLEAN      NOT NULL DEFAULT FALSE,
     override_reason_code      VARCHAR(100),
-    reviewer_notes            TEXT
+    reviewer_notes            TEXT,
+    manual_trigger_reason     VARCHAR(100), -- NEW: reason if insurer-initiated
+    trigger_source            VARCHAR(20)  NOT NULL DEFAULT 'automatic' -- 'automatic' | 'insurer_initiated'
 );
 
 CREATE INDEX idx_mr_claim_id ON manual_reviews (claim_id);
 CREATE INDEX idx_mr_queued_at ON manual_reviews (queued_at);
+CREATE INDEX idx_mr_trigger_source ON manual_reviews (trigger_source);
 ```
 
 ### Table: `notification_deliveries`
