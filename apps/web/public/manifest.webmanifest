@@ -1,0 +1,8 @@
+{
+  "background_color": "#f7f8f5",
+  "display": "standalone",
+  "name": "Glass Claim Assessment",
+  "short_name": "Glass Claims",
+  "start_url": "/",
+  "theme_color": "#1f6f78"
+}
