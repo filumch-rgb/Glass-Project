@@ -57,14 +57,14 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Test status transitions and event emission
     - _Requirements: 1.5, 1.7, 11.5_
 
-- [ ] 4. Implement notification and journey services with security
-  - [ ] 4.1 Create notification service with Twilio/WhatsApp integration
+- [x] 4. Implement notification and journey services with security
+  - [x] 4.1 Create notification service with Twilio/WhatsApp integration
     - Implement SMS notification via Twilio
     - Add WhatsApp Business API integration
     - Create notification delivery tracking
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ] 4.2 Implement journey token management with security
+  - [x] 4.2 Implement journey token management with security
     - Create signed JWT journey tokens with claim scoping
     - Add token expiration (24 hours default) and revocation
     - Implement rate limiting for journey endpoints
@@ -72,7 +72,7 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Add RBAC for journey access
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 14.4, 14.5, 14.11_
 
-  - [ ] 4.3 Integration test - Notification to journey creation
+  - [x] 4.3 Integration test - Notification to journey creation
     - Test notification dispatch and journey token generation
     - Test token security and rate limiting
     - Test journey expiration and abandonment
