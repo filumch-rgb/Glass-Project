@@ -122,9 +122,6 @@ class App {
     // Placeholder routes for future implementation
     const apiRouter = express.Router();
     
-    // Claim submission route (web form)
-    apiRouter.use(claimSubmissionRouter);
-    
     // Intake routes (Task 3)
     apiRouter.get('/claims', (req, res) => {
       res.status(501).json({ message: 'Claims endpoint - Coming in Task 3' });
@@ -146,6 +143,9 @@ class App {
     });
 
     this.app.use(`/api/${config.apiVersion}`, apiRouter);
+    
+    // Claim submission route (web form) - mounted directly on /api
+    this.app.use('/api', claimSubmissionRouter);
 
     // 404 handler
     this.app.use('*', (req, res) => {
