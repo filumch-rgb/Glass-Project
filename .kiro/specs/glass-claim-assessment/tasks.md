@@ -30,28 +30,28 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Add audit logging for sensitive data access
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 14.7_
 
-- [ ] 3. Implement email intake system with integration testing
-  - [ ] 3.1 Create IMAP mailbox poller with cron scheduling
+- [x] 3. Implement email intake system with integration testing
+  - [x] 3.1 Create IMAP mailbox poller with cron scheduling
     - Implement 15-minute polling schedule using node-cron
     - Add IMAP connection handling with imapflow
     - Create email parsing for "New Glass Claim" subject
     - Implement folder management (Completed/Failed)
     - _Requirements: 1.1, 1.6, 1.8_
 
-  - [ ] 3.2 Implement claim intake parser and validation
+  - [x] 3.2 Implement claim intake parser and validation
     - Parse key:value email body format for required fields
     - Validate insurer name, insurer ID, claim number, policyholder details
     - Generate UUID claim identifiers and intake keys
     - Store initial claim record with intake_received status
     - _Requirements: 1.2, 1.3, 1.4, 1.9_
 
-  - [ ] 3.3 Implement dual status model
+  - [x] 3.3 Implement dual status model
     - Create internal status enumeration and transitions
     - Implement external status derivation logic
     - Ensure external status is never stored independently
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
-  - [ ] 3.4 Integration test - Email intake to database
+  - [x] 3.4 Integration test - Email intake to database
     - Test complete email processing flow
     - Test idempotency and error handling
     - Test status transitions and event emission
