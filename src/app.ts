@@ -1,12 +1,14 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import path from 'path';
 import { config } from './config';
 import { loggers } from './utils/logger';
 import database from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
 import { rateLimiter } from './middleware/rateLimiter';
+import claimSubmissionRouter from './routes/claimSubmission';
 
 class App {
   public app: express.Application;
@@ -25,7 +27,7 @@ class App {
         directives: {
           defaultSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for form
           imgSrc: ["'self'", "data:", "https:"],
         },
       },
@@ -55,6 +57,9 @@ class App {
 
     // Request logging
     this.app.use(requestLogger);
+
+    // Serve static files from public directory
+    this.app.use(express.static(path.join(__dirname, '../public')));
 
     // Force HTTPS in production
     if (config.security.forceHttps && config.nodeEnv === 'production') {
@@ -116,6 +121,9 @@ class App {
 
     // Placeholder routes for future implementation
     const apiRouter = express.Router();
+    
+    // Claim submission route (web form)
+    apiRouter.use(claimSubmissionRouter);
     
     // Intake routes (Task 3)
     apiRouter.get('/claims', (req, res) => {

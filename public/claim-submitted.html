@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claim Submitted - Glass Claims Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 60px 40px;
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon::after {
+            content: '✓';
+            color: white;
+            font-size: 50px;
+            font-weight: bold;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .claim-number {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .claim-number strong {
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .message {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .next-steps {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .next-steps h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .next-steps ol {
+            margin-left: 20px;
+            color: #666;
+        }
+
+        .next-steps li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #999;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon"></div>
+        
+        <h1>Claim Submitted Successfully!</h1>
+        
+        <div class="claim-number">
+            <strong id="claimNumber">Loading...</strong>
+        </div>
+
+        <p class="message">
+            Your glass claim has been successfully submitted and is now being processed. 
+            The policyholder will receive a notification shortly with instructions to upload photos.
+        </p>
+
+        <div class="next-steps">
+            <h2>What Happens Next?</h2>
+            <ol>
+                <li><strong>Notification Sent:</strong> The policyholder will receive an SMS/WhatsApp message with a secure link</li>
+                <li><strong>Photo Upload:</strong> They'll be guided to capture photos of the windscreen damage</li>
+                <li><strong>Assessment:</strong> Our system will analyze the photos and vehicle information</li>
+                <li><strong>Decision:</strong> You'll receive the assessment result (repair/replace/manual review)</li>
+            </ol>
+        </div>
+
+        <div class="button-group">
+            <a href="/submit-claim.html" class="btn btn-primary">Submit Another Claim</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+
+        <div class="footer">
+            <p>Questions? Contact support at support@glassscans.com</p>
+        </div>
+    </div>
+
+    <script>
+        // Get claim number from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const claimNumber = urlParams.get('claim');
+        
+        if (claimNumber) {
+            document.getElementById('claimNumber').textContent = `Claim #${claimNumber}`;
+        } else {
+            document.getElementById('claimNumber').textContent = 'Claim submitted';
+        }
+    </script>
+</body>
+</html>

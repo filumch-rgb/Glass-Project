@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Glass Claim - Glass Claims Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        label .required {
+            color: #e74c3c;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input.error {
+            border-color: #e74c3c;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            display: none;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .alert {
+            display: none;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Submit Glass Claim</h1>
+            <p>Fill out the form below to submit a new windscreen claim</p>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <form id="claimForm">
+            <div class="form-group">
+                <label for="insurerName">
+                    Insurer Name <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="insurerName" 
+                    name="insurerName" 
+                    placeholder="e.g., ABC Insurance"
+                    required
+                >
+                <div class="error-message" id="insurerNameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="claimNumber">
+                    Claim Number <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="claimNumber" 
+                    name="claimNumber" 
+                    placeholder="e.g., CLM-2024-001234"
+                    required
+                >
+                <div class="error-message" id="claimNumberError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="policyholderName">
+                    Policyholder Name <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="policyholderName" 
+                    name="policyholderName" 
+                    placeholder="e.g., John Doe"
+                    required
+                >
+                <div class="error-message" id="policyholderNameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="policyholderMobile">
+                    Policyholder Mobile <span class="required">*</span>
+                </label>
+                <input 
+                    type="tel" 
+                    id="policyholderMobile" 
+                    name="policyholderMobile" 
+                    placeholder="e.g., +1234567890"
+                    required
+                >
+                <div class="help-text">Include country code (e.g., +1 for US)</div>
+                <div class="error-message" id="policyholderMobileError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="policyholderEmail">
+                    Policyholder Email <span class="required">*</span>
+                </label>
+                <input 
+                    type="email" 
+                    id="policyholderEmail" 
+                    name="policyholderEmail" 
+                    placeholder="e.g., john@example.com"
+                    required
+                >
+                <div class="error-message" id="policyholderEmailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="vin">
+                    Vehicle VIN <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="vin" 
+                    name="vin" 
+                    placeholder="e.g., 1HGBH41JXMN109186"
+                    maxlength="17"
+                    required
+                >
+                <div class="help-text">17-character Vehicle Identification Number</div>
+                <div class="error-message" id="vinError"></div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Submit Claim
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">Submitting claim...</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('claimForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const alertBox = document.getElementById('alertBox');
+
+        // Validation functions
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function validatePhone(phone) {
+            // Basic validation: starts with + and has at least 10 digits
+            const re = /^\+\d{10,15}$/;
+            return re.test(phone.replace(/[\s-]/g, ''));
+        }
+
+        function validateVIN(vin) {
+            // VIN should be exactly 17 alphanumeric characters
+            const re = /^[A-HJ-NPR-Z0-9]{17}$/i;
+            return re.test(vin);
+        }
+
+        function showError(fieldId, message) {
+            const input = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(fieldId + 'Error');
+            input.classList.add('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function clearError(fieldId) {
+            const input = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(fieldId + 'Error');
+            input.classList.remove('error');
+            errorDiv.classList.remove('show');
+        }
+
+        function clearAllErrors() {
+            const fields = ['insurerName', 'claimNumber', 'policyholderName', 'policyholderMobile', 'policyholderEmail', 'vin'];
+            fields.forEach(clearError);
+        }
+
+        function showAlert(message, type = 'error') {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type} show`;
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAllErrors();
+            alertBox.classList.remove('show');
+
+            // Get form data
+            const formData = {
+                insurerName: document.getElementById('insurerName').value.trim(),
+                claimNumber: document.getElementById('claimNumber').value.trim(),
+                policyholderName: document.getElementById('policyholderName').value.trim(),
+                policyholderMobile: document.getElementById('policyholderMobile').value.trim(),
+                policyholderEmail: document.getElementById('policyholderEmail').value.trim(),
+                vin: document.getElementById('vin').value.trim().toUpperCase()
+            };
+
+            // Validate
+            let hasErrors = false;
+
+            if (!formData.insurerName) {
+                showError('insurerName', 'Insurer name is required');
+                hasErrors = true;
+            }
+
+            if (!formData.claimNumber) {
+                showError('claimNumber', 'Claim number is required');
+                hasErrors = true;
+            }
+
+            if (!formData.policyholderName) {
+                showError('policyholderName', 'Policyholder name is required');
+                hasErrors = true;
+            }
+
+            if (!formData.policyholderMobile) {
+                showError('policyholderMobile', 'Mobile number is required');
+                hasErrors = true;
+            } else if (!validatePhone(formData.policyholderMobile)) {
+                showError('policyholderMobile', 'Please enter a valid phone number with country code (e.g., +1234567890)');
+                hasErrors = true;
+            }
+
+            if (!formData.policyholderEmail) {
+                showError('policyholderEmail', 'Email is required');
+                hasErrors = true;
+            } else if (!validateEmail(formData.policyholderEmail)) {
+                showError('policyholderEmail', 'Please enter a valid email address');
+                hasErrors = true;
+            }
+
+            if (!formData.vin) {
+                showError('vin', 'VIN is required');
+                hasErrors = true;
+            } else if (!validateVIN(formData.vin)) {
+                showError('vin', 'VIN must be exactly 17 alphanumeric characters');
+                hasErrors = true;
+            }
+
+            if (hasErrors) {
+                return;
+            }
+
+            // Submit form
+            submitBtn.disabled = true;
+            form.style.display = 'none';
+            loading.classList.add('show');
+
+            try {
+                const response = await fetch('/api/submit-claim', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Success - redirect to confirmation page
+                    window.location.href = `/claim-submitted.html?claim=${encodeURIComponent(formData.claimNumber)}`;
+                } else {
+                    throw new Error(result.error || 'Failed to submit claim');
+                }
+            } catch (error) {
+                loading.classList.remove('show');
+                form.style.display = 'block';
+                submitBtn.disabled = false;
+                showAlert(error.message || 'Failed to submit claim. Please try again.');
+            }
+        });
+
+        // Clear errors on input
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                clearError(input.id);
+            });
+        });
+    </script>
+</body>
+</html>
