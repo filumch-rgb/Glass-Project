@@ -93,9 +93,11 @@ This document covers the full scope of the Phase 1 pilot: email intake, consent 
 1. THE System SHALL require exactly 5 fixed photos per claim: (1) front vehicle, (2) VIN cutout, (3) logo/silkscreen, (4) inside driver side, (5) inside passenger side
 2. THE System SHALL require at least 1 damage photo and SHALL accept up to 3 damage photos per claim
 3. WHEN the Policyholder accesses the photo capture interface, THE System SHALL display instructions and guidance for each required photo slot
-4. THE System SHALL track each fixed photo slot independently and SHALL NOT consider a slot filled until its photo is accepted
-5. THE System SHALL track damage photo slots independently and SHALL allow replacement of a rejected damage photo
-6. WHEN all 5 fixed photo slots are accepted AND at least 1 damage photo is accepted AND no more than 3 damage photos are present, THE System SHALL mark the photo set as complete
+4. THE System SHALL display a visual reference image for each photo slot showing the expected framing and subject matter
+5. BEFORE the photo capture journey begins, THE System SHALL display a preparation checklist reminding the Policyholder to have their car keys available for interior photos
+6. THE System SHALL track each fixed photo slot independently and SHALL NOT consider a slot filled until its photo is accepted
+7. THE System SHALL track damage photo slots independently and SHALL allow replacement of a rejected damage photo
+8. WHEN all 5 fixed photo slots are accepted AND at least 1 damage photo is accepted AND no more than 3 damage photos are present, THE System SHALL mark the photo set as complete
 
 ---
 
@@ -105,17 +107,18 @@ This document covers the full scope of the Phase 1 pilot: email intake, consent 
 
 #### Acceptance Criteria
 
-1. WHEN using the PWA channel, THE System SHALL enforce camera-only capture by using the `capture="environment"` attribute on file input elements to prevent gallery/camera roll access
-2. WHEN a photo is uploaded, THE System SHALL validate: supported MIME type, readable file, file size within configured limit, minimum resolution met, acceptable sharpness, acceptable brightness, likely correct framing for the slot type, likely not a duplicate of another photo in the same claim, and EXIF timestamp indicates recent capture (within last 10 minutes)
-3. WHEN EXIF timestamp validation fails or indicates the photo was not recently captured, THE System SHALL assign it outcome rejected_retake_required with reason "photo_not_recently_captured"
-4. WHEN a photo passes all validation checks including EXIF timestamp validation, THE System SHALL assign it outcome accepted
-5. WHEN a photo passes validation but has quality warnings, THE System SHALL assign it outcome accepted_with_warning or accepted_low_quality as appropriate
-6. WHEN a photo fails one or more validation checks, THE System SHALL assign it outcome rejected_retake_required
-7. WHEN a fixed photo slot is rejected, THE System SHALL request a retake for that slot
-8. WHEN a damage photo is rejected, THE System SHALL allow the Policyholder to submit a replacement damage photo
-9. THE System SHALL assign a claim-level evidence sufficiency outcome of: in_progress (photo set not yet complete), sufficient (all slots accepted), sufficient_with_warnings (accepted with quality warnings), or insufficient (required slots rejected or missing)
-10. THE System SHALL NOT issue a final assessment while claim-level evidence sufficiency is insufficient
-11. WHEN photo validation completes for a photo, THE System SHALL emit a photo.validated or photo.rejected event
+1. WHEN using the PWA channel, THE System SHALL enforce camera-only capture by using the `capture="environment"` attribute on file input elements to prevent gallery/camera roll access and ensure photos are taken live with the device camera
+2. THE System SHALL provide clear, user-friendly error messages when photos are rejected, explaining what needs to be corrected and how to retake the photo
+3. WHEN a photo is uploaded, THE System SHALL validate: supported MIME type, readable file, file size within configured limit, minimum resolution met, acceptable sharpness, acceptable brightness, likely correct framing for the slot type, likely not a duplicate of another photo in the same claim, and EXIF timestamp indicates recent capture (within last 10 minutes)
+4. WHEN EXIF timestamp validation fails or indicates the photo was not recently captured, THE System SHALL assign it outcome rejected_retake_required with reason "photo_not_recently_captured"
+5. WHEN a photo passes all validation checks including EXIF timestamp validation, THE System SHALL assign it outcome accepted
+6. WHEN a photo passes validation but has quality warnings, THE System SHALL assign it outcome accepted_with_warning or accepted_low_quality as appropriate
+7. WHEN a photo fails one or more validation checks, THE System SHALL assign it outcome rejected_retake_required
+8. WHEN a fixed photo slot is rejected, THE System SHALL request a retake for that slot with clear guidance on what went wrong
+9. WHEN a damage photo is rejected, THE System SHALL allow the Policyholder to submit a replacement damage photo with clear guidance
+10. THE System SHALL assign a claim-level evidence sufficiency outcome of: in_progress (photo set not yet complete), sufficient (all slots accepted), sufficient_with_warnings (accepted with quality warnings), or insufficient (required slots rejected or missing)
+11. THE System SHALL NOT issue a final assessment while claim-level evidence sufficiency is insufficient
+12. WHEN photo validation completes for a photo, THE System SHALL emit a photo.validated or photo.rejected event
 
 ---
 
