@@ -152,7 +152,7 @@ export class PhotoService {
       if (!fileValidation.valid) {
         return {
           success: false,
-          error: fileValidation.error,
+          error: fileValidation.error || 'File validation failed',
           errorCode: 'FILE_VALIDATION_FAILED',
         };
       }

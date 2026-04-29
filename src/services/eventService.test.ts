@@ -98,9 +98,13 @@ describe('EventService', () => {
 
       // Verify chronological order
       for (let i = 1; i < events.length; i++) {
-        const prevTimestamp = new Date(events[i - 1].timestamp).getTime();
-        const currTimestamp = new Date(events[i].timestamp).getTime();
-        expect(currTimestamp).toBeGreaterThanOrEqual(prevTimestamp);
+        const prevEvent = events[i - 1];
+        const currEvent = events[i];
+        if (prevEvent && currEvent) {
+          const prevTimestamp = new Date(prevEvent.timestamp).getTime();
+          const currTimestamp = new Date(currEvent.timestamp).getTime();
+          expect(currTimestamp).toBeGreaterThanOrEqual(prevTimestamp);
+        }
       }
     });
 
