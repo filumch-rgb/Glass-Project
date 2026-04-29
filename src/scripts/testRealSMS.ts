@@ -16,7 +16,7 @@ async function testRealSMS() {
   console.log('\n📱 Testing Real SMS Notification...\n');
 
   // ⚠️ UPDATE THIS WITH YOUR VERIFIED PHONE NUMBER
-  const YOUR_PHONE_NUMBER = '+27824141221'; // Format: +1234567890 (include country code)
+  const YOUR_PHONE_NUMBER = '+16502092854'; // US number (verified in Twilio)
 
   try {
     const testClaimId = uuidv4();

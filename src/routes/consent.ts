@@ -95,6 +95,7 @@ router.post('/consent/capture', async (req: Request, res: Response) => {
       },
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (error) {
     loggers.app.error('Failed to capture consent', error as Error);
     res.status(500).json({
@@ -105,6 +106,7 @@ router.post('/consent/capture', async (req: Request, res: Response) => {
       },
       timestamp: new Date().toISOString(),
     });
+    return;
   }
 });
 
@@ -140,6 +142,7 @@ router.get('/consent/status', async (req: Request, res: Response) => {
       },
       timestamp: new Date().toISOString(),
     });
+    return;
   } catch (error) {
     loggers.app.error('Failed to check consent status', error as Error);
     res.status(500).json({
@@ -150,6 +153,7 @@ router.get('/consent/status', async (req: Request, res: Response) => {
       },
       timestamp: new Date().toISOString(),
     });
+    return;
   }
 });
 
