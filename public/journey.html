@@ -206,6 +206,212 @@
             font-size: 14px;
             color: #333;
         }
+
+        .checklist {
+            margin-bottom: 30px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .checklist-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .checklist-content {
+            flex: 1;
+        }
+
+        .checklist-content strong {
+            display: block;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .checklist-content p {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .progress-indicator {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .photo-category {
+            margin-bottom: 30px;
+        }
+
+        .photo-category h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .photo-slot {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .photo-slot-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .slot-number {
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .slot-title {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .slot-status {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .reference-image {
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .reference-placeholder {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .photo-input {
+            display: none;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            display: block;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .photo-preview {
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .btn-retake {
+            width: 100%;
+            padding: 10px;
+            background: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .validation-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .validation-message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .validation-message.warning {
+            background: #fff3cd;
+            color: #856404;
+            display: block;
+        }
+
+        .validation-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .photo-slot.accepted .slot-status {
+            color: #28a745;
+        }
+
+        .photo-slot.accepted .slot-number {
+            background: #28a745;
+        }
+
+        .photo-slot.rejected .slot-status {
+            color: #dc3545;
+        }
+
+        .photo-slot.rejected .slot-number {
+            background: #dc3545;
+        }
+
+        .photo-slot.warning .slot-status {
+            color: #ff9800;
+        }
+
+        .photo-slot.warning .slot-number {
+            background: #ff9800;
+        }
     </style>
 </head>
 <body>
@@ -274,16 +480,230 @@
                 </div>
             </div>
 
+            <!-- Preparation Screen -->
+            <div id="preparationSection" class="hidden">
+                <div class="section">
+                    <h2>📋 Before You Begin</h2>
+                    <p style="color: #666; margin-bottom: 20px;">
+                        Please prepare the following items before starting the photo capture:
+                    </p>
+
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <span class="checklist-icon">🔑</span>
+                            <div class="checklist-content">
+                                <strong>Car Keys</strong>
+                                <p>You'll need your car keys to access the interior for photos</p>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <span class="checklist-icon">☀️</span>
+                            <div class="checklist-content">
+                                <strong>Good Lighting</strong>
+                                <p>Take photos in daylight or well-lit areas for best results</p>
+                            </div>
+                        </div>
+                        <div class="checklist-item">
+                            <span class="checklist-icon">📱</span>
+                            <div class="checklist-content">
+                                <strong>Clean Camera Lens</strong>
+                                <p>Wipe your camera lens for clear, sharp photos</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="startPhotosBtn" class="btn btn-primary">
+                        I'm Ready - Start Photo Capture
+                    </button>
+                </div>
+            </div>
+
             <!-- Photo Upload Section -->
             <div id="photoUploadSection" class="photo-upload-section">
                 <div class="section">
-                    <h2>Upload Photos</h2>
-                    <div class="upload-info">
-                        ✓ Consent captured successfully! You can now upload your photos.
+                    <h2>📸 Upload Photos</h2>
+                    
+                    <div class="progress-indicator">
+                        <span id="progressText">0 of 8 photos completed</span>
                     </div>
-                    <p style="color: #666;">
-                        Photo upload functionality will be implemented in Task 6.
+
+                    <div class="upload-info">
+                        ✓ Consent captured successfully! Please upload all required photos.
+                    </div>
+
+                    <div class="error-message" id="uploadError"></div>
+                    <div class="success-message" id="uploadSuccess"></div>
+
+                    <!-- Fixed Photos -->
+                    <div class="photo-category">
+                        <h3>Required Vehicle Photos (5)</h3>
+                        
+                        <div class="photo-slot" data-slot="front_vehicle">
+                            <div class="photo-slot-header">
+                                <span class="slot-number">1</span>
+                                <span class="slot-title">Front Vehicle</span>
+                                <span class="slot-status">⏳ Pending</span>
+                            </div>
+                            <div class="reference-image">
+                                <div class="reference-placeholder">🚗 Front view of entire vehicle</div>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_front_vehicle" />
+                            <label for="input_front_vehicle" class="btn btn-secondary">Take Photo</label>
+                            <div class="photo-preview hidden">
+                                <img src="" alt="Preview" />
+                                <button class="btn-retake">Retake</button>
+                            </div>
+                            <div class="validation-message"></div>
+                        </div>
+
+                        <div class="photo-slot" data-slot="vin_cutout">
+                            <div class="photo-slot-header">
+                                <span class="slot-number">2</span>
+                                <span class="slot-title">VIN Cutout</span>
+                                <span class="slot-status">⏳ Pending</span>
+                            </div>
+                            <div class="reference-image">
+                                <div class="reference-placeholder">🔢 VIN plate on dashboard or door frame</div>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_vin_cutout" />
+                            <label for="input_vin_cutout" class="btn btn-secondary">Take Photo</label>
+                            <div class="photo-preview hidden">
+                                <img src="" alt="Preview" />
+                                <button class="btn-retake">Retake</button>
+                            </div>
+                            <div class="validation-message"></div>
+                        </div>
+
+                        <div class="photo-slot" data-slot="logo_silkscreen">
+                            <div class="photo-slot-header">
+                                <span class="slot-number">3</span>
+                                <span class="slot-title">Logo/Silkscreen</span>
+                                <span class="slot-status">⏳ Pending</span>
+                            </div>
+                            <div class="reference-image">
+                                <div class="reference-placeholder">🏷️ Windscreen logo or manufacturer mark</div>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_logo_silkscreen" />
+                            <label for="input_logo_silkscreen" class="btn btn-secondary">Take Photo</label>
+                            <div class="photo-preview hidden">
+                                <img src="" alt="Preview" />
+                                <button class="btn-retake">Retake</button>
+                            </div>
+                            <div class="validation-message"></div>
+                        </div>
+
+                        <div class="photo-slot" data-slot="inside_driver">
+                            <div class="photo-slot-header">
+                                <span class="slot-number">4</span>
+                                <span class="slot-title">Inside Driver Side</span>
+                                <span class="slot-status">⏳ Pending</span>
+                            </div>
+                            <div class="reference-image">
+                                <div class="reference-placeholder">🪟 View from driver's seat showing windscreen</div>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_inside_driver" />
+                            <label for="input_inside_driver" class="btn btn-secondary">Take Photo</label>
+                            <div class="photo-preview hidden">
+                                <img src="" alt="Preview" />
+                                <button class="btn-retake">Retake</button>
+                            </div>
+                            <div class="validation-message"></div>
+                        </div>
+
+                        <div class="photo-slot" data-slot="inside_passenger">
+                            <div class="photo-slot-header">
+                                <span class="slot-number">5</span>
+                                <span class="slot-title">Inside Passenger Side</span>
+                                <span class="slot-status">⏳ Pending</span>
+                            </div>
+                            <div class="reference-image">
+                                <div class="reference-placeholder">🪟 View from passenger seat showing windscreen</div>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_inside_passenger" />
+                            <label for="input_inside_passenger" class="btn btn-secondary">Take Photo</label>
+                            <div class="photo-preview hidden">
+                                <img src="" alt="Preview" />
+                                <button class="btn-retake">Retake</button>
+                            </div>
+                            <div class="validation-message"></div>
+                        </div>
+                    </div>
+
+                    <!-- Damage Photos -->
+                    <div class="photo-category">
+                        <h3>Damage Photos (1-3 required)</h3>
+                        
+                        <div class="photo-slot" data-slot="damage_1">
+                            <div class="photo-slot-header">
+                                <span class="slot-number">6</span>
+                                <span class="slot-title">Damage Photo 1</span>
+                                <span class="slot-status">⏳ Pending</span>
+                            </div>
+                            <div class="reference-image">
+                                <div class="reference-placeholder">💥 Close-up of windscreen damage</div>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_damage_1" />
+                            <label for="input_damage_1" class="btn btn-secondary">Take Photo</label>
+                            <div class="photo-preview hidden">
+                                <img src="" alt="Preview" />
+                                <button class="btn-retake">Retake</button>
+                            </div>
+                            <div class="validation-message"></div>
+                        </div>
+
+                        <div class="photo-slot" data-slot="damage_2">
+                            <div class="photo-slot-header">
+                                <span class="slot-number">7</span>
+                                <span class="slot-title">Damage Photo 2 (Optional)</span>
+                                <span class="slot-status">⏳ Pending</span>
+                            </div>
+                            <div class="reference-image">
+                                <div class="reference-placeholder">💥 Additional angle of damage</div>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_damage_2" />
+                            <label for="input_damage_2" class="btn btn-secondary">Take Photo</label>
+                            <div class="photo-preview hidden">
+                                <img src="" alt="Preview" />
+                                <button class="btn-retake">Retake</button>
+                            </div>
+                            <div class="validation-message"></div>
+                        </div>
+
+                        <div class="photo-slot" data-slot="damage_3">
+                            <div class="photo-slot-header">
+                                <span class="slot-number">8</span>
+                                <span class="slot-title">Damage Photo 3 (Optional)</span>
+                                <span class="slot-status">⏳ Pending</span>
+                            </div>
+                            <div class="reference-image">
+                                <div class="reference-placeholder">💥 Another angle if needed</div>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_damage_3" />
+                            <label for="input_damage_3" class="btn btn-secondary">Take Photo</label>
+                            <div class="photo-preview hidden">
+                                <img src="" alt="Preview" />
+                                <button class="btn-retake">Retake</button>
+                            </div>
+                            <div class="validation-message"></div>
+                        </div>
+                    </div>
+
+                    <button id="completeBtn" class="btn btn-primary hidden">
+                        Complete Submission
+                    </button>
+                </div>
+            </div>
+
+            <!-- Completion Screen -->
+            <div id="completionSection" class="hidden">
+                <div class="section">
+                    <h2>✅ Photos Submitted Successfully!</h2>
+                    <p style="color: #666; margin-bottom: 20px;">
+                        Thank you for submitting your photos. Your claim is now being processed.
                     </p>
+                    <div class="upload-info">
+                        We'll review your photos and contact you with the assessment results shortly.
+                    </div>
                 </div>
             </div>
         </div>
@@ -300,11 +720,21 @@
         const errorState = document.getElementById('errorState');
         const errorText = document.getElementById('errorText');
         const consentSection = document.getElementById('consentSection');
+        const preparationSection = document.getElementById('preparationSection');
         const photoUploadSection = document.getElementById('photoUploadSection');
+        const completionSection = document.getElementById('completionSection');
         const consentCheckbox = document.getElementById('consentCheckbox');
         const acceptConsentBtn = document.getElementById('acceptConsentBtn');
+        const startPhotosBtn = document.getElementById('startPhotosBtn');
+        const completeBtn = document.getElementById('completeBtn');
         const consentError = document.getElementById('consentError');
         const consentSuccess = document.getElementById('consentSuccess');
+        const uploadError = document.getElementById('uploadError');
+        const uploadSuccess = document.getElementById('uploadSuccess');
+        const progressText = document.getElementById('progressText');
+
+        // Photo upload state
+        let photoSetStatus = null;
 
         // Initialize the page
         async function init() {
@@ -319,8 +749,8 @@
                 const statusData = await statusResponse.json();
 
                 if (statusData.success && statusData.data.consentCaptured) {
-                    // Consent already captured, show photo upload section
-                    showPhotoUploadSection();
+                    // Consent already captured, show preparation section
+                    showPreparationSection();
                     return;
                 }
 
@@ -395,9 +825,9 @@
                 consentSuccess.textContent = 'Consent captured successfully!';
                 consentSuccess.style.display = 'block';
 
-                // Transition to photo upload section
+                // Transition to preparation section
                 setTimeout(() => {
-                    showPhotoUploadSection();
+                    showPreparationSection();
                 }, 1000);
             } catch (error) {
                 console.error('Consent capture error:', error);
@@ -408,10 +838,214 @@
             }
         });
 
+        // Handle start photos button
+        startPhotosBtn.addEventListener('click', () => {
+            showPhotoUploadSection();
+            loadPhotoSetStatus();
+        });
+
+        // Setup photo inputs
+        document.querySelectorAll('.photo-input').forEach(input => {
+            input.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const slot = input.id.replace('input_', '');
+                await uploadPhoto(slot, file);
+            });
+        });
+
+        // Setup retake buttons
+        document.querySelectorAll('.btn-retake').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const slot = e.target.closest('.photo-slot').dataset.slot;
+                const input = document.getElementById(`input_${slot}`);
+                input.value = '';
+                input.click();
+            });
+        });
+
+        // Handle complete button
+        completeBtn.addEventListener('click', () => {
+            showCompletionSection();
+        });
+
+        // Upload photo
+        async function uploadPhoto(slot, file) {
+            const slotElement = document.querySelector(`.photo-slot[data-slot="${slot}"]`);
+            const statusElement = slotElement.querySelector('.slot-status');
+            const validationElement = slotElement.querySelector('.validation-message');
+            const previewElement = slotElement.querySelector('.photo-preview');
+            const labelElement = slotElement.querySelector('label');
+
+            // Show uploading status
+            statusElement.textContent = '⏳ Uploading...';
+            validationElement.style.display = 'none';
+            uploadError.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('journeyToken', journeyToken);
+                formData.append('slot', slot);
+                formData.append('photo', file);
+
+                const response = await fetch('/api/photos/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    statusElement.textContent = '❌ Failed';
+                    validationElement.textContent = data.error.message;
+                    validationElement.className = 'validation-message error';
+                    slotElement.classList.add('rejected');
+                    return;
+                }
+
+                // Update photo set status
+                photoSetStatus = data.data.photoSetStatus;
+                updateProgress();
+
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewElement.querySelector('img').src = e.target.result;
+                    previewElement.classList.remove('hidden');
+                    labelElement.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+
+                // Update status based on validation outcome
+                const outcome = data.data.photo.validationOutcome;
+                const message = data.data.photo.validationMessage;
+
+                if (outcome === 'accepted') {
+                    statusElement.textContent = '✅ Accepted';
+                    slotElement.classList.remove('rejected', 'warning');
+                    slotElement.classList.add('accepted');
+                    if (message) {
+                        validationElement.textContent = message;
+                        validationElement.className = 'validation-message success';
+                    }
+                } else if (outcome === 'accepted_with_warning' || outcome === 'accepted_low_quality') {
+                    statusElement.textContent = '⚠️ Accepted with Warning';
+                    slotElement.classList.remove('rejected', 'accepted');
+                    slotElement.classList.add('warning');
+                    validationElement.textContent = message || 'Photo accepted but quality could be improved';
+                    validationElement.className = 'validation-message warning';
+                } else {
+                    statusElement.textContent = '❌ Rejected';
+                    slotElement.classList.remove('accepted', 'warning');
+                    slotElement.classList.add('rejected');
+                    validationElement.textContent = message || 'Photo rejected. Please retake.';
+                    validationElement.className = 'validation-message error';
+                }
+
+                // Check if photo set is complete
+                if (photoSetStatus.isComplete) {
+                    completeBtn.classList.remove('hidden');
+                    uploadSuccess.textContent = '✅ All required photos uploaded successfully!';
+                    uploadSuccess.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                statusElement.textContent = '❌ Failed';
+                uploadError.textContent = 'Network error. Please check your connection and try again.';
+                uploadError.style.display = 'block';
+            }
+        }
+
+        // Load photo set status
+        async function loadPhotoSetStatus() {
+            try {
+                const response = await fetch(`/api/photos/status?token=${encodeURIComponent(journeyToken)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    photoSetStatus = data.data;
+                    updateProgress();
+                    updatePhotoSlots();
+                }
+            } catch (error) {
+                console.error('Failed to load photo status:', error);
+            }
+        }
+
+        // Update progress indicator
+        function updateProgress() {
+            if (!photoSetStatus) return;
+
+            let completedCount = 0;
+            const totalCount = 8;
+
+            // Count fixed photos
+            Object.values(photoSetStatus.fixedPhotos).forEach(photo => {
+                if (photo.outcome === 'accepted' || photo.outcome === 'accepted_with_warning' || photo.outcome === 'accepted_low_quality') {
+                    completedCount++;
+                }
+            });
+
+            // Count damage photos
+            Object.values(photoSetStatus.damagePhotos).forEach(photo => {
+                if (photo.outcome === 'accepted' || photo.outcome === 'accepted_with_warning' || photo.outcome === 'accepted_low_quality') {
+                    completedCount++;
+                }
+            });
+
+            progressText.textContent = `${completedCount} of ${totalCount} photos completed`;
+        }
+
+        // Update photo slots based on status
+        function updatePhotoSlots() {
+            if (!photoSetStatus) return;
+
+            // Update fixed photos
+            Object.entries(photoSetStatus.fixedPhotos).forEach(([slot, photo]) => {
+                if (photo.uploaded) {
+                    const slotElement = document.querySelector(`.photo-slot[data-slot="${slot}"]`);
+                    const statusElement = slotElement.querySelector('.slot-status');
+
+                    if (photo.outcome === 'accepted') {
+                        statusElement.textContent = '✅ Accepted';
+                        slotElement.classList.add('accepted');
+                    } else if (photo.outcome === 'accepted_with_warning' || photo.outcome === 'accepted_low_quality') {
+                        statusElement.textContent = '⚠️ Accepted with Warning';
+                        slotElement.classList.add('warning');
+                    } else if (photo.outcome === 'rejected_retake_required') {
+                        statusElement.textContent = '❌ Rejected';
+                        slotElement.classList.add('rejected');
+                    }
+                }
+            });
+
+            // Update damage photos
+            Object.entries(photoSetStatus.damagePhotos).forEach(([slot, photo]) => {
+                if (photo.uploaded) {
+                    const slotElement = document.querySelector(`.photo-slot[data-slot="${slot}"]`);
+                    const statusElement = slotElement.querySelector('.slot-status');
+
+                    if (photo.outcome === 'accepted') {
+                        statusElement.textContent = '✅ Accepted';
+                        slotElement.classList.add('accepted');
+                    } else if (photo.outcome === 'accepted_with_warning' || photo.outcome === 'accepted_low_quality') {
+                        statusElement.textContent = '⚠️ Accepted with Warning';
+                        slotElement.classList.add('warning');
+                    } else if (photo.outcome === 'rejected_retake_required') {
+                        statusElement.textContent = '❌ Rejected';
+                        slotElement.classList.add('rejected');
+                    }
+                }
+            });
+        }
+
         function showError(message) {
             loadingState.classList.add('hidden');
             consentSection.classList.add('hidden');
+            preparationSection.classList.add('hidden');
             photoUploadSection.classList.remove('active');
+            completionSection.classList.add('hidden');
             errorState.classList.remove('hidden');
             errorText.textContent = message;
         }
@@ -419,15 +1053,37 @@
         function showConsentSection() {
             loadingState.classList.add('hidden');
             errorState.classList.add('hidden');
+            preparationSection.classList.add('hidden');
             photoUploadSection.classList.remove('active');
+            completionSection.classList.add('hidden');
             consentSection.classList.remove('hidden');
+        }
+
+        function showPreparationSection() {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            consentSection.classList.add('hidden');
+            photoUploadSection.classList.remove('active');
+            completionSection.classList.add('hidden');
+            preparationSection.classList.remove('hidden');
         }
 
         function showPhotoUploadSection() {
             loadingState.classList.add('hidden');
             errorState.classList.add('hidden');
             consentSection.classList.add('hidden');
+            preparationSection.classList.add('hidden');
+            completionSection.classList.add('hidden');
             photoUploadSection.classList.add('active');
+        }
+
+        function showCompletionSection() {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            consentSection.classList.add('hidden');
+            preparationSection.classList.add('hidden');
+            photoUploadSection.classList.remove('active');
+            completionSection.classList.remove('hidden');
         }
 
         // Start initialization

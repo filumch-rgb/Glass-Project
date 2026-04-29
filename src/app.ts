@@ -10,6 +10,7 @@ import { requestLogger } from './middleware/requestLogger';
 import { rateLimiter } from './middleware/rateLimiter';
 import claimSubmissionRouter from './routes/claimSubmission';
 import consentRouter from './routes/consent';
+import photosRouter from './routes/photos';
 
 class App {
   public app: express.Application;
@@ -150,6 +151,9 @@ class App {
 
     // Consent routes - mounted directly on /api
     this.app.use('/api', consentRouter);
+
+    // Photo routes - mounted directly on /api
+    this.app.use('/api', photosRouter);
 
     // Journey page route - serve journey.html for /journey/:token
     this.app.get('/journey/:token', (req, res) => {

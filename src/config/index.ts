@@ -9,6 +9,7 @@ interface Config {
   nodeEnv: string;
   port: number;
   apiVersion: string;
+  baseUrl: string;
 
   // Database
   database: {
@@ -127,6 +128,7 @@ export const config: Config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3000', 10),
   apiVersion: process.env.API_VERSION || 'v1',
+  baseUrl: process.env.BASE_URL || `http://localhost:${process.env.PORT || '3000'}`,
 
   database: {
     host: process.env.DB_HOST!,
