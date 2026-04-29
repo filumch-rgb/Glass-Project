@@ -16,14 +16,7 @@ async function testRealSMS() {
   console.log('\n📱 Testing Real SMS Notification...\n');
 
   // ⚠️ UPDATE THIS WITH YOUR VERIFIED PHONE NUMBER
-  const YOUR_PHONE_NUMBER = '+1234567890'; // Format: +1234567890 (include country code)
-
-  if (YOUR_PHONE_NUMBER === '+1234567890') {
-    console.log('❌ Please update YOUR_PHONE_NUMBER in this script first!');
-    console.log('   Edit: src/scripts/testRealSMS.ts');
-    console.log('   Line: const YOUR_PHONE_NUMBER = "+1234567890";');
-    process.exit(1);
-  }
+  const YOUR_PHONE_NUMBER = '+27824141221'; // Format: +1234567890 (include country code)
 
   try {
     const testClaimId = uuidv4();

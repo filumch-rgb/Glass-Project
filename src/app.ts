@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
 import { rateLimiter } from './middleware/rateLimiter';
 import claimSubmissionRouter from './routes/claimSubmission';
+import consentRouter from './routes/consent';
 
 class App {
   public app: express.Application;
@@ -146,6 +147,14 @@ class App {
     
     // Claim submission route (web form) - mounted directly on /api
     this.app.use('/api', claimSubmissionRouter);
+
+    // Consent routes - mounted directly on /api
+    this.app.use('/api', consentRouter);
+
+    // Journey page route - serve journey.html for /journey/:token
+    this.app.get('/journey/:token', (req, res) => {
+      res.sendFile(path.join(__dirname, '../public/journey.html'));
+    });
 
     // 404 handler
     this.app.use('*', (req, res) => {

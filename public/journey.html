@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Claim - Photo Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .legal-notice {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .legal-notice h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .legal-notice p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .legal-notice p:last-child {
+            margin-bottom: 0;
+        }
+
+        .legal-notice a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .legal-notice a:hover {
+            text-decoration: underline;
+        }
+
+        .consent-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 20px;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .consent-checkbox input[type="checkbox"] {
+            margin-top: 3px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .consent-checkbox label {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .photo-upload-section {
+            display: none;
+        }
+
+        .photo-upload-section.active {
+            display: block;
+        }
+
+        .upload-info {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Glass Claim Assessment</h1>
+            <p>Windscreen Damage Photo Upload</p>
+        </div>
+
+        <div class="content">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p>Loading your claim journey...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden">
+                <div class="error-message" style="display: block;">
+                    <strong>Error:</strong> <span id="errorText"></span>
+                </div>
+            </div>
+
+            <!-- Consent Section -->
+            <div id="consentSection" class="hidden">
+                <div class="section">
+                    <h2>Before We Begin</h2>
+                    <p style="color: #666; margin-bottom: 20px;">
+                        Please read and accept the following legal notice to proceed with your claim.
+                    </p>
+
+                    <div class="legal-notice">
+                        <h3>Data Processing</h3>
+                        <p id="dataProcessingText"></p>
+
+                        <h3>Automated Analysis</h3>
+                        <p id="automatedAnalysisText"></p>
+
+                        <h3>Manual Review</h3>
+                        <p id="manualReviewText"></p>
+
+                        <h3>Privacy & Support</h3>
+                        <p>
+                            For more information, please review our 
+                            <a id="privacyLink" href="#" target="_blank">Privacy Notice</a>.
+                            If you have questions, contact us at 
+                            <a id="supportEmail" href="#"></a>.
+                        </p>
+                    </div>
+
+                    <div class="consent-checkbox">
+                        <input type="checkbox" id="consentCheckbox" />
+                        <label for="consentCheckbox">
+                            <strong>I have read and accept the above notice.</strong> 
+                            I understand that my photos and claim information will be processed 
+                            using automated analysis and may be reviewed by a human operator.
+                        </label>
+                    </div>
+
+                    <div class="error-message" id="consentError"></div>
+                    <div class="success-message" id="consentSuccess"></div>
+
+                    <button id="acceptConsentBtn" class="btn btn-primary" disabled>
+                        Accept and Continue
+                    </button>
+                </div>
+            </div>
+
+            <!-- Photo Upload Section -->
+            <div id="photoUploadSection" class="photo-upload-section">
+                <div class="section">
+                    <h2>Upload Photos</h2>
+                    <div class="upload-info">
+                        ✓ Consent captured successfully! You can now upload your photos.
+                    </div>
+                    <p style="color: #666;">
+                        Photo upload functionality will be implemented in Task 6.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Extract journey token from URL
+        const urlPath = window.location.pathname;
+        const tokenMatch = urlPath.match(/\/journey\/(.+)/);
+        const journeyToken = tokenMatch ? tokenMatch[1] : null;
+
+        // DOM elements
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const errorText = document.getElementById('errorText');
+        const consentSection = document.getElementById('consentSection');
+        const photoUploadSection = document.getElementById('photoUploadSection');
+        const consentCheckbox = document.getElementById('consentCheckbox');
+        const acceptConsentBtn = document.getElementById('acceptConsentBtn');
+        const consentError = document.getElementById('consentError');
+        const consentSuccess = document.getElementById('consentSuccess');
+
+        // Initialize the page
+        async function init() {
+            if (!journeyToken) {
+                showError('Invalid journey link. Please use the link provided in your SMS or WhatsApp message.');
+                return;
+            }
+
+            try {
+                // Check if consent already captured
+                const statusResponse = await fetch(`/api/consent/status?token=${encodeURIComponent(journeyToken)}`);
+                const statusData = await statusResponse.json();
+
+                if (statusData.success && statusData.data.consentCaptured) {
+                    // Consent already captured, show photo upload section
+                    showPhotoUploadSection();
+                    return;
+                }
+
+                // Load legal notice
+                const noticeResponse = await fetch('/api/consent/legal-notice');
+                const noticeData = await noticeResponse.json();
+
+                if (!noticeData.success) {
+                    showError('Failed to load legal notice. Please try again.');
+                    return;
+                }
+
+                // Populate legal notice
+                const notice = noticeData.data;
+                document.getElementById('dataProcessingText').textContent = notice.content.dataProcessingDescription;
+                document.getElementById('automatedAnalysisText').textContent = notice.content.automatedAnalysisNotice;
+                document.getElementById('manualReviewText').textContent = notice.content.manualReviewNotice;
+                document.getElementById('privacyLink').href = notice.content.privacyNoticeUrl;
+                document.getElementById('supportEmail').href = `mailto:${notice.content.supportContact}`;
+                document.getElementById('supportEmail').textContent = notice.content.supportContact;
+
+                // Show consent section
+                showConsentSection();
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('Failed to load page. Please check your internet connection and try again.');
+            }
+        }
+
+        // Enable/disable accept button based on checkbox
+        consentCheckbox.addEventListener('change', () => {
+            acceptConsentBtn.disabled = !consentCheckbox.checked;
+        });
+
+        // Handle consent acceptance
+        acceptConsentBtn.addEventListener('click', async () => {
+            if (!consentCheckbox.checked) {
+                return;
+            }
+
+            acceptConsentBtn.disabled = true;
+            acceptConsentBtn.textContent = 'Processing...';
+            consentError.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/consent/capture', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        journeyToken: journeyToken,
+                        consentAccepted: true,
+                        sessionMetadata: {
+                            userAgent: navigator.userAgent,
+                            timestamp: new Date().toISOString(),
+                        },
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    consentError.textContent = data.error.message || 'Failed to capture consent. Please try again.';
+                    consentError.style.display = 'block';
+                    acceptConsentBtn.disabled = false;
+                    acceptConsentBtn.textContent = 'Accept and Continue';
+                    return;
+                }
+
+                // Show success message briefly
+                consentSuccess.textContent = 'Consent captured successfully!';
+                consentSuccess.style.display = 'block';
+
+                // Transition to photo upload section
+                setTimeout(() => {
+                    showPhotoUploadSection();
+                }, 1000);
+            } catch (error) {
+                console.error('Consent capture error:', error);
+                consentError.textContent = 'Network error. Please check your connection and try again.';
+                consentError.style.display = 'block';
+                acceptConsentBtn.disabled = false;
+                acceptConsentBtn.textContent = 'Accept and Continue';
+            }
+        });
+
+        function showError(message) {
+            loadingState.classList.add('hidden');
+            consentSection.classList.add('hidden');
+            photoUploadSection.classList.remove('active');
+            errorState.classList.remove('hidden');
+            errorText.textContent = message;
+        }
+
+        function showConsentSection() {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            photoUploadSection.classList.remove('active');
+            consentSection.classList.remove('hidden');
+        }
+
+        function showPhotoUploadSection() {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            consentSection.classList.add('hidden');
+            photoUploadSection.classList.add('active');
+        }
+
+        // Start initialization
+        init();
+    </script>
+</body>
+</html>

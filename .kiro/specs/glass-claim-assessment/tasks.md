@@ -78,14 +78,14 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Test journey expiration and abandonment
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 5. Implement consent capture system
-  - [ ] 5.1 Create legal notice presentation and consent recording
+- [x] 5. Implement consent capture system
+  - [x] 5.1 Create legal notice presentation and consent recording
     - Implement legal notice with required content fields
     - Add consent capture for PWA and WhatsApp channels
     - Store consent metadata with timestamps and versions
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 5.2 Integration test - Consent gate enforcement
+  - [x] 5.2 Integration test - Consent gate enforcement
     - Test consent blocking of photo uploads
     - Test consent capture flow
     - _Requirements: 2.6, 2.7_
