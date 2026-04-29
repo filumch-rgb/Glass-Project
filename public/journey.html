@@ -547,8 +547,8 @@
                             <div class="reference-image">
                                 <div class="reference-placeholder">🚗 Front view of entire vehicle</div>
                             </div>
-                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_front_vehicle" />
-                            <label for="input_front_vehicle" class="btn btn-secondary">Take Photo</label>
+                            <input type="file" accept="image/*" class="photo-input" id="input_front_vehicle" />
+                            <label for="input_front_vehicle" class="btn btn-secondary">📷 <span class="btn-text">Take Photo</span></label>
                             <div class="photo-preview hidden">
                                 <img src="" alt="Preview" />
                                 <button class="btn-retake">Retake</button>
@@ -565,8 +565,8 @@
                             <div class="reference-image">
                                 <div class="reference-placeholder">🔢 VIN plate on dashboard or door frame</div>
                             </div>
-                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_vin_cutout" />
-                            <label for="input_vin_cutout" class="btn btn-secondary">Take Photo</label>
+                            <input type="file" accept="image/*" class="photo-input" id="input_vin_cutout" />
+                            <label for="input_vin_cutout" class="btn btn-secondary">📷 <span class="btn-text">Take Photo</span></label>
                             <div class="photo-preview hidden">
                                 <img src="" alt="Preview" />
                                 <button class="btn-retake">Retake</button>
@@ -583,8 +583,8 @@
                             <div class="reference-image">
                                 <div class="reference-placeholder">🏷️ Windscreen logo or manufacturer mark</div>
                             </div>
-                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_logo_silkscreen" />
-                            <label for="input_logo_silkscreen" class="btn btn-secondary">Take Photo</label>
+                            <input type="file" accept="image/*" class="photo-input" id="input_logo_silkscreen" />
+                            <label for="input_logo_silkscreen" class="btn btn-secondary">📷 <span class="btn-text">Take Photo</span></label>
                             <div class="photo-preview hidden">
                                 <img src="" alt="Preview" />
                                 <button class="btn-retake">Retake</button>
@@ -601,8 +601,8 @@
                             <div class="reference-image">
                                 <div class="reference-placeholder">🪟 View from driver's seat showing windscreen</div>
                             </div>
-                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_inside_driver" />
-                            <label for="input_inside_driver" class="btn btn-secondary">Take Photo</label>
+                            <input type="file" accept="image/*" class="photo-input" id="input_inside_driver" />
+                            <label for="input_inside_driver" class="btn btn-secondary">📷 <span class="btn-text">Take Photo</span></label>
                             <div class="photo-preview hidden">
                                 <img src="" alt="Preview" />
                                 <button class="btn-retake">Retake</button>
@@ -619,8 +619,8 @@
                             <div class="reference-image">
                                 <div class="reference-placeholder">🪟 View from passenger seat showing windscreen</div>
                             </div>
-                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_inside_passenger" />
-                            <label for="input_inside_passenger" class="btn btn-secondary">Take Photo</label>
+                            <input type="file" accept="image/*" class="photo-input" id="input_inside_passenger" />
+                            <label for="input_inside_passenger" class="btn btn-secondary">📷 <span class="btn-text">Take Photo</span></label>
                             <div class="photo-preview hidden">
                                 <img src="" alt="Preview" />
                                 <button class="btn-retake">Retake</button>
@@ -642,8 +642,8 @@
                             <div class="reference-image">
                                 <div class="reference-placeholder">💥 Close-up of windscreen damage</div>
                             </div>
-                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_damage_1" />
-                            <label for="input_damage_1" class="btn btn-secondary">Take Photo</label>
+                            <input type="file" accept="image/*" class="photo-input" id="input_damage_1" />
+                            <label for="input_damage_1" class="btn btn-secondary">📷 <span class="btn-text">Take Photo</span></label>
                             <div class="photo-preview hidden">
                                 <img src="" alt="Preview" />
                                 <button class="btn-retake">Retake</button>
@@ -660,8 +660,8 @@
                             <div class="reference-image">
                                 <div class="reference-placeholder">💥 Additional angle of damage</div>
                             </div>
-                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_damage_2" />
-                            <label for="input_damage_2" class="btn btn-secondary">Take Photo</label>
+                            <input type="file" accept="image/*" class="photo-input" id="input_damage_2" />
+                            <label for="input_damage_2" class="btn btn-secondary">📷 <span class="btn-text">Take Photo</span></label>
                             <div class="photo-preview hidden">
                                 <img src="" alt="Preview" />
                                 <button class="btn-retake">Retake</button>
@@ -678,8 +678,8 @@
                             <div class="reference-image">
                                 <div class="reference-placeholder">💥 Another angle if needed</div>
                             </div>
-                            <input type="file" accept="image/*" capture="environment" class="photo-input" id="input_damage_3" />
-                            <label for="input_damage_3" class="btn btn-secondary">Take Photo</label>
+                            <input type="file" accept="image/*" class="photo-input" id="input_damage_3" />
+                            <label for="input_damage_3" class="btn btn-secondary">📷 <span class="btn-text">Take Photo</span></label>
                             <div class="photo-preview hidden">
                                 <img src="" alt="Preview" />
                                 <button class="btn-retake">Retake</button>
@@ -710,6 +710,31 @@
     </div>
 
     <script>
+        // Detect if user is on mobile device
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // Apply capture="environment" only on mobile devices
+        if (isMobileDevice()) {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.photo-input').forEach(input => {
+                    input.setAttribute('capture', 'environment');
+                });
+                // Update button text for mobile
+                document.querySelectorAll('.btn-text').forEach(span => {
+                    span.textContent = 'Take Photo';
+                });
+            });
+        } else {
+            // Update button text for desktop
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.btn-text').forEach(span => {
+                    span.textContent = 'Upload Photo';
+                });
+            });
+        }
+
         // Extract journey token from URL
         const urlPath = window.location.pathname;
         const tokenMatch = urlPath.match(/\/journey\/(.+)/);
