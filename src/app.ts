@@ -188,13 +188,14 @@ class App {
         loggers.app.warn('Some database tables are missing. Run migrations to create them.');
       }
 
-      // Start server
-      this.app.listen(config.port, () => {
+      // Start server - listen on all network interfaces (0.0.0.0) to allow mobile access
+      this.app.listen(config.port, '0.0.0.0', () => {
         loggers.system.startup(config.port);
         loggers.app.info('Glass Claim Assessment System started', {
           version: config.apiVersion,
           environment: config.nodeEnv,
           port: config.port,
+          host: '0.0.0.0',
           database: config.database.name,
           tablesExist
         });
