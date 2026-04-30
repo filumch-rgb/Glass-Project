@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+// @ts-ignore - exif-parser doesn't have TypeScript definitions
 import exifParser from 'exif-parser';
 import fs from 'fs/promises';
 import { loggers } from '../utils/logger';
@@ -255,11 +256,11 @@ export class PhotoValidationService {
       for (let y = 1; y < height - 1; y++) {
         for (let x = 1; x < width - 1; x++) {
           const idx = y * width + x;
-          const center = data[idx];
-          const top = data[(y - 1) * width + x];
-          const bottom = data[(y + 1) * width + x];
-          const left = data[y * width + (x - 1)];
-          const right = data[y * width + (x + 1)];
+          const center = data[idx] || 0;
+          const top = data[(y - 1) * width + x] || 0;
+          const bottom = data[(y + 1) * width + x] || 0;
+          const left = data[y * width + (x - 1)] || 0;
+          const right = data[y * width + (x + 1)] || 0;
 
           const laplacian = Math.abs(4 * center - top - bottom - left - right);
           variance += laplacian * laplacian;
@@ -269,7 +270,7 @@ export class PhotoValidationService {
       variance = variance / ((width - 2) * (height - 2));
       return Math.sqrt(variance);
     } catch (error) {
-      loggers.app.warn('Failed to calculate sharpness', error as Error);
+      loggers.app.warn('Failed to calculate sharpness', { error: (error as Error).message });
       return this.MIN_SHARPNESS; // Default to acceptable
     }
   }
@@ -287,7 +288,7 @@ export class PhotoValidationService {
       
       return avgBrightness;
     } catch (error) {
-      loggers.app.warn('Failed to calculate brightness', error as Error);
+      loggers.app.warn('Failed to calculate brightness', { error: (error as Error).message });
       return 128; // Default to mid-range
     }
   }
@@ -336,7 +337,7 @@ export class PhotoValidationService {
         withinTimeLimit: true,
       };
     } catch (error) {
-      loggers.app.warn('Failed to parse EXIF data', error as Error);
+      loggers.app.warn('Failed to parse EXIF data', { error: (error as Error).message });
       // If EXIF parsing fails, assume photo doesn't have EXIF data (likely not from camera)
       return {
         valid: false,
