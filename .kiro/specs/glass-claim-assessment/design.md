@@ -377,7 +377,59 @@ type EvidenceSufficiency = 'in_progress' | 'sufficient' | 'sufficient_with_warni
 
 ### 8. VIN/Vehicle Enrichment Service
 
-Decodes VIN via external API, performs OCR on the VIN cutout photo, runs mismatch detection when both sources are available, and performs ADAS lookup.
+Orchestrates VIN validation, OCR extraction, geography-based VIN decoding with fallback, and ADAS lookup. Uses insurer-provided VIN as primary source with OCR as validation/backup.
+
+#### Architecture
+
+**VIN Decoder Provider Abstraction:**
+```typescript
+interface VINDecoderProvider {
+  name: 'lightstone' | 'nhtsa';
+  geography: 'south_africa' | 'united_states' | 'international';
+  decode(vin: string): Promise<VehicleData>;
+}
+
+interface VehicleData {
+  make: string;
+  model: string;
+  year?: number;
+  bodyType?: string;
+  color?: string;
+  additionalMetadata?: Record<string, any>;
+}
+```
+
+**Geography-Based Routing:**
+- Each customer/insurer has a configured geography (e.g., 'south_africa', 'united_states')
+- System routes VIN decode requests to the appropriate provider:
+  - South Africa → Lightstone API (primary), NHTSA (fallback)
+  - United States/International → NHTSA API (primary)
+- If primary decoder returns null or fails, automatically try fallback decoder
+
+**VIN Enrichment Flow:**
+1. **VIN Source Selection:**
+   - Use insurer-provided VIN as primary
+   - If VIN cutout photo accepted → perform OCR extraction with Google Cloud Vision API
+   - Compare insurer VIN vs OCR VIN
+   - If mismatch → use insurer VIN, set mismatch flag
+   - If no insurer VIN → use OCR VIN
+
+2. **VIN Decode:**
+   - Route to geography-appropriate decoder (Lightstone or NHTSA)
+   - Extract vehicle data (make, model, year, body type, color)
+   - If primary decoder returns null → try fallback decoder (NHTSA)
+   - Always ensure make and model are available for insurer output
+
+3. **ADAS Lookup:**
+   - Call ADAS API with validated VIN
+   - Determine ADAS presence (yes/no)
+   - Store ADAS feature details if available
+   - ADAS presence indicates OEM glass requirement
+
+4. **Result Assembly:**
+   - Assign VIN result state
+   - Store enrichment payload in inspection_data JSONB
+   - Emit vin.enrichment_completed event
 
 ```typescript
 interface VINEnrichmentResult {
@@ -385,20 +437,42 @@ interface VINEnrichmentResult {
   vinResultState: 'validated' | 'ocr_only' | 'insurer_only' | 'mismatch' | 'unavailable';
   insurerProvidedVin?: string;
   ocrExtractedVin?: string;
+  ocrConfidenceScore?: number;
   bestValidatedVin?: string;
+  vinMismatchFlag: boolean;
+  decoderUsed: 'lightstone' | 'nhtsa' | 'fallback_nhtsa';
   vehicleData?: {
     make: string;
     model: string;
-    year: number;
-    bodyType: string;
+    year?: number;
+    bodyType?: string;
+    color?: string;
+    additionalMetadata?: Record<string, any>;
   };
   adasStatus: 'yes' | 'no' | 'unknown';
-  mismatchDetected: boolean;
+  adasFeatures?: string[];
   enrichedAt: Date;
 }
 ```
 
-**Retry logic:** up to 3 retries with exponential backoff (1s, 2s, 4s) for external API calls.
+**OCR VIN Extraction (Google Cloud Vision API):**
+- Extract text from VIN cutout photo
+- Validate VIN format (17 characters, excluding I, O, Q)
+- Return confidence score
+- Retry up to 3 times with exponential backoff on failure
+
+**Retry Logic:**
+- Up to 3 retries with exponential backoff (1s, 2s, 4s) for:
+  - VIN decoder API calls (Lightstone, NHTSA)
+  - ADAS API calls
+  - Google Cloud Vision OCR calls
+- On exhaustion, set appropriate unavailable state and route to manual review
+
+**Error Handling:**
+- If all VIN enrichment attempts fail → set vinResultState to 'unavailable'
+- If ADAS lookup fails → set adasStatus to 'unknown'
+- Always emit vin.enrichment_completed event (success or failure)
+- Route to manual review if critical data unavailable
 
 ---
 

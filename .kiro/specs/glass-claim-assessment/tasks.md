@@ -114,20 +114,41 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Test camera-only enforcement
     - _Requirements: 3.6, 4.7_
 
-- [ ] 7. Implement VIN enrichment service
-  - [ ] 7.1 Create VIN decode and OCR extraction with retry logic
-    - Implement external VIN Decoder API integration with retry logic
-    - Add OCR VIN extraction from VIN cutout photos
-    - Implement VIN mismatch detection between sources
-    - Add ADAS lookup functionality
-    - Add exponential backoff for external API calls
-    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.8_
+- [ ] 7. Implement VIN enrichment service with geography-based routing
+  - [ ] 7.1 Create VIN decoder provider abstraction and geography routing
+    - Implement VIN decoder provider interface (Lightstone, NHTSA)
+    - Add geography-based routing logic (customer configuration)
+    - Implement Lightstone API integration (South Africa)
+    - Implement NHTSA API integration (US/International - free)
+    - Add fallback strategy (primary → NHTSA if null/failed)
+    - _Requirements: 6.11, 6.12, 6.13, 6.14, 6.15, 6.16, 6.17_
 
-  - [ ] 7.2 Integration test - VIN enrichment
-    - Test VIN result state derivation
+  - [ ] 7.2 Implement OCR VIN extraction with Google Cloud Vision API
+    - Integrate Google Cloud Vision API for VIN cutout photo OCR
+    - Add VIN format validation (17 chars, exclude I, O, Q)
+    - Extract and store OCR confidence score
+    - Implement VIN source priority (insurer VIN primary, OCR backup)
+    - Add VIN mismatch detection and flagging
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10_
+
+  - [ ] 7.3 Implement ADAS lookup and retry logic
+    - Add ADAS API integration with validated VIN
+    - Determine ADAS presence (yes/no) and features
+    - Implement exponential backoff retry for all external APIs (3 retries: 1s, 2s, 4s)
+    - Add error handling and unavailable state management
+    - Ensure make and model always available in output
+    - _Requirements: 6.19, 6.20, 6.21, 6.22, 6.23, 6.24, 6.25, 6.26_
+
+  - [ ] 7.4 Integration test - VIN enrichment with geography routing
+    - Test geography-based decoder selection
+    - Test fallback strategy (Lightstone → NHTSA)
+    - Test VIN result state derivation (validated, ocr_only, insurer_only, mismatch, unavailable)
+    - Test VIN mismatch handling (use insurer VIN, set flag)
     - Test retry logic and error handling
-    - Test mismatch detection scenarios
-    - _Requirements: 6.3, 6.6_
+    - Test OCR extraction and confidence scoring
+    - Test ADAS lookup integration
+    - Test event emission (vin.enrichment_completed)
+    - _Requirements: 6.6, 6.27, 6.28, 6.29_
 
 - [ ] 8. Implement damage analysis service
   - [ ] 8.1 Create structured damage analysis

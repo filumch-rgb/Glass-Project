@@ -139,18 +139,62 @@ This document covers the full scope of the Phase 1 pilot: email intake, consent 
 
 ### Requirement 6: VIN Enrichment
 
-**User Story:** As the System, I want to enrich claim data with validated vehicle information, so that the decision engine has accurate vehicle context.
+**User Story:** As the System, I want to enrich claim data with validated vehicle information using geography-appropriate VIN decoders and OCR extraction, so that the decision engine has accurate vehicle context.
 
 #### Acceptance Criteria
 
-1. WHEN an insurer-provided VIN is present, THE System SHALL initiate VIN decode after intake validation completes
-2. WHEN the VIN cutout photo is accepted, THE System SHALL perform OCR VIN extraction on that photo
-3. WHEN both an insurer-provided VIN and an OCR-extracted VIN are available, THE System SHALL run mismatch detection and compare the two values
-4. IF the insurer-provided VIN and OCR-extracted VIN do not match, THE System SHALL set VIN result state to mismatch and route the claim to manual review
-5. THE System SHALL use only the best validated VIN for ADAS lookup
+**VIN Source Priority:**
+1. THE System SHALL use the insurer-provided VIN as the primary VIN source for all enrichment operations
+2. WHEN the VIN cutout photo is accepted, THE System SHALL perform OCR VIN extraction using Google Cloud Vision API
+3. WHEN both an insurer-provided VIN and an OCR-extracted VIN are available, THE System SHALL compare the two values
+4. IF the insurer-provided VIN and OCR-extracted VIN do not match, THE System SHALL use the insurer-provided VIN and set a mismatch flag in the enrichment payload
+5. IF no insurer-provided VIN is available, THE System SHALL use the OCR-extracted VIN
 6. THE System SHALL assign a VIN result state to every claim: validated (both match), ocr_only (no insurer VIN), insurer_only (no OCR result), mismatch (both present but differ), or unavailable (neither available)
-7. WHEN VIN result state is mismatch or unavailable, THE System SHALL either degrade decision eligibility or route to manual review
-8. WHEN VIN enrichment completes, THE System SHALL emit a vin.enrichment_completed event
+
+**OCR VIN Extraction:**
+7. THE System SHALL use Google Cloud Vision API for OCR VIN extraction from the VIN cutout photo
+8. THE System SHALL validate extracted VIN format (17 characters, excluding I, O, Q)
+9. THE System SHALL include OCR confidence score in the enrichment payload
+10. IF OCR extraction fails or confidence is below threshold, THE System SHALL proceed with insurer-provided VIN only
+
+**Geography-Based VIN Decoder Selection:**
+11. THE System SHALL support multiple VIN decoder providers based on customer geography configuration
+12. THE System SHALL support the following VIN decoder providers:
+    - Lightstone API (South Africa)
+    - NHTSA API (United States and International - free)
+13. THE System SHALL route VIN decode requests to the appropriate provider based on the customer's configured geography
+14. THE System SHALL implement a fallback strategy: if the primary decoder returns null or fails, try the secondary decoder (NHTSA)
+
+**VIN Decode and Vehicle Data:**
+15. THE System SHALL decode the validated VIN using the geography-appropriate decoder
+16. THE System SHALL extract and store the following vehicle data from the decode response:
+    - Make (manufacturer)
+    - Model
+    - Year
+    - Body type (if available)
+    - Color (if available from Lightstone)
+    - Additional metadata as available
+17. IF the primary VIN decoder (Lightstone) returns null, THE System SHALL attempt decode using NHTSA API as fallback
+18. THE System SHALL always include make and model in the final insurer output, even if other fields are unavailable
+
+**ADAS Lookup:**
+19. THE System SHALL perform ADAS (Advanced Driver Assistance Systems) lookup using the validated VIN
+20. THE System SHALL determine if the vehicle has ADAS functionality (yes/no)
+21. IF ADAS data is available, THE System SHALL include ADAS feature details in the enrichment payload
+22. THE System SHALL use ADAS presence to inform glass replacement requirements (ADAS vehicles require OEM glass with recalibration)
+
+**Error Handling and Retry Logic:**
+23. THE System SHALL implement exponential backoff retry logic for external VIN decoder API calls (max 3 retries)
+24. THE System SHALL implement exponential backoff retry logic for ADAS API calls (max 3 retries)
+25. THE System SHALL implement exponential backoff retry logic for Google Cloud Vision OCR calls (max 3 retries)
+26. IF all VIN enrichment attempts fail, THE System SHALL set VIN result state to unavailable and route to manual review
+
+**Event Emission:**
+27. WHEN VIN enrichment completes (success or failure), THE System SHALL emit a vin.enrichment_completed event
+28. THE System SHALL include VIN result state, decoder used, and enrichment payload in the event
+
+**Performance:**
+29. THE System SHALL complete VIN enrichment (OCR + decode + ADAS lookup) within 30 seconds of trigger
 
 ---
 
