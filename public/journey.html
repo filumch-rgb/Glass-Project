@@ -762,6 +762,27 @@
         let photoSetStatus = null;
 
         // Initialize the page
+        // Helper function to fetch with timeout
+        async function fetchWithTimeout(url, options = {}, timeout = 10000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timeout - please check your connection');
+                }
+                throw error;
+            }
+        }
+
         async function init() {
             if (!journeyToken) {
                 showError('Invalid journey link. Please use the link provided in your SMS or WhatsApp message.');
@@ -770,8 +791,17 @@
 
             try {
                 // Check if consent already captured
-                const statusResponse = await fetch(`/api/consent/status?token=${encodeURIComponent(journeyToken)}`);
+                console.log('Fetching consent status...');
+                const statusResponse = await fetchWithTimeout(`/api/consent/status?token=${encodeURIComponent(journeyToken)}`, {}, 15000);
+                console.log('Status response:', statusResponse.status);
+                
+                if (!statusResponse.ok) {
+                    showError(`Server error (${statusResponse.status}). Please try again.`);
+                    return;
+                }
+                
                 const statusData = await statusResponse.json();
+                console.log('Status data:', statusData);
 
                 if (statusData.success && statusData.data.consentCaptured) {
                     // Consent already captured, show preparation section
@@ -780,8 +810,17 @@
                 }
 
                 // Load legal notice
-                const noticeResponse = await fetch('/api/consent/legal-notice');
+                console.log('Fetching legal notice...');
+                const noticeResponse = await fetchWithTimeout('/api/consent/legal-notice', {}, 15000);
+                console.log('Notice response:', noticeResponse.status);
+                
+                if (!noticeResponse.ok) {
+                    showError(`Server error (${noticeResponse.status}). Please try again.`);
+                    return;
+                }
+                
                 const noticeData = await noticeResponse.json();
+                console.log('Notice data received');
 
                 if (!noticeData.success) {
                     showError('Failed to load legal notice. Please try again.');
@@ -798,10 +837,11 @@
                 document.getElementById('supportEmail').textContent = notice.content.supportContact;
 
                 // Show consent section
+                console.log('Showing consent section');
                 showConsentSection();
             } catch (error) {
                 console.error('Initialization error:', error);
-                showError('Failed to load page. Please check your internet connection and try again.');
+                showError(`Error: ${error.message}. Please check your connection and try again.`);
             }
         }
 

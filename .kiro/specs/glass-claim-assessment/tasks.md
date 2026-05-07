@@ -90,8 +90,8 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Test consent capture flow
     - _Requirements: 2.6, 2.7_
 
-- [ ] 6. Implement photo upload and validation system with security
-  - [ ] 6.1 Create photo upload service with slot management
+- [x] 6. Implement photo upload and validation system with security
+  - [x] 6.1 Create photo upload service with slot management
     - Implement 5 fixed photo slots + up to 3 damage photo slots
     - Add photo upload with journey token authentication
     - Enforce consent gate before allowing uploads
@@ -99,7 +99,7 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Add file validation and security checks
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 14.2, 14.3_
 
-  - [ ] 6.2 Implement photo validation with camera-only enforcement
+  - [x] 6.2 Implement photo validation with camera-only enforcement
     - Add MIME type, file size, and resolution validation
     - Implement sharpness, brightness, and framing checks
     - Add EXIF timestamp validation for recent capture (10 minutes)
@@ -107,7 +107,7 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Assign validation outcomes (accepted/rejected_retake_required)
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11_
 
-  - [ ] 6.3 Integration test - Photo upload to validation
+  - [x] 6.3 Integration test - Photo upload to validation
     - Test complete photo upload and validation flow
     - Test photo set completion rules
     - Test evidence sufficiency derivation

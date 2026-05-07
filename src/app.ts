@@ -23,29 +23,24 @@ class App {
   }
 
   private initializeMiddleware(): void {
-    // Security middleware
+    // Security middleware - Relaxed for development/testing
     this.app.use(helmet({
       contentSecurityPolicy: {
         directives: {
-          defaultSrc: ["'self'"],
+          defaultSrc: ["'self'", "*"],
           styleSrc: ["'self'", "'unsafe-inline'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for form
-          imgSrc: ["'self'", "data:", "https:"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", "data:", "https:", "*"],
+          connectSrc: ["'self'", "*"], // Allow connections to any source
         },
       },
-      hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true
-      }
+      hsts: false, // Disable HSTS in development to prevent HTTPS enforcement
     }));
 
-    // CORS configuration
+    // CORS configuration - Allow all origins for development/testing
     this.app.use(cors({
-      origin: config.nodeEnv === 'production' 
-        ? ['https://yourdomain.com'] // Replace with actual production domains
-        : true, // Allow all origins in development
-      credentials: true,
+      origin: '*', // Allow all origins
+      credentials: false, // Set to false when using wildcard origin
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     }));
