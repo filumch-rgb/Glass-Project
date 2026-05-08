@@ -60,13 +60,24 @@ interface Config {
 
   // External APIs
   externalApis: {
-    vinDecoder: {
-      url?: string;
-      apiKey?: string;
+    googleCloudVision: {
+      apiKey: string;
+      serviceAccount: string;
     };
-    adasService: {
-      url?: string;
-      apiKey?: string;
+    lightstone: {
+      apiUrl: string;
+      username: string;
+      password: string;
+      clientPackageId: string;
+    };
+    bayanaty: {
+      apiUrl: string;
+      username: string;
+      password: string;
+      agentId: string;
+    };
+    nhtsa: {
+      apiUrl: string;
     };
   };
 
@@ -176,13 +187,24 @@ export const config: Config = {
   },
 
   externalApis: {
-    vinDecoder: {
-      ...(process.env.VIN_DECODER_API_URL && { url: process.env.VIN_DECODER_API_URL }),
-      ...(process.env.VIN_DECODER_API_KEY && { apiKey: process.env.VIN_DECODER_API_KEY }),
+    googleCloudVision: {
+      apiKey: process.env.GOOGLE_CLOUD_VISION_API_KEY || '',
+      serviceAccount: process.env.GOOGLE_CLOUD_VISION_SERVICE_ACCOUNT || '',
     },
-    adasService: {
-      ...(process.env.ADAS_SERVICE_API_URL && { url: process.env.ADAS_SERVICE_API_URL }),
-      ...(process.env.ADAS_SERVICE_API_KEY && { apiKey: process.env.ADAS_SERVICE_API_KEY }),
+    lightstone: {
+      apiUrl: process.env.LIGHTSTONE_API_URL || 'https://liveapi.lightstoneauto.co.za',
+      username: process.env.LIGHTSTONE_USERNAME || '',
+      password: process.env.LIGHTSTONE_PASSWORD || '',
+      clientPackageId: process.env.LIGHTSTONE_CLIENT_PACKAGE_ID || '',
+    },
+    bayanaty: {
+      apiUrl: process.env.BAYANATY_API_URL || 'https://capi1.bayanaty.com',
+      username: process.env.BAYANATY_USERNAME || '',
+      password: process.env.BAYANATY_PASSWORD || '',
+      agentId: process.env.BAYANATY_AGENT_ID || 'string',
+    },
+    nhtsa: {
+      apiUrl: process.env.NHTSA_API_URL || 'https://vpic.nhtsa.dot.gov',
     },
   },
 

@@ -139,7 +139,7 @@ This document covers the full scope of the Phase 1 pilot: email intake, consent 
 
 ### Requirement 6: VIN Enrichment
 
-**User Story:** As the System, I want to enrich claim data with validated vehicle information using geography-appropriate VIN decoders and OCR extraction, so that the decision engine has accurate vehicle context.
+**User Story:** As the System, I want to enrich claim data with validated vehicle information using geography-appropriate VIN decoders, OCR extraction, and ADAS lookup, so that the decision engine has accurate vehicle context.
 
 #### Acceptance Criteria
 
@@ -153,48 +153,66 @@ This document covers the full scope of the Phase 1 pilot: email intake, consent 
 
 **OCR VIN Extraction:**
 7. THE System SHALL use Google Cloud Vision API for OCR VIN extraction from the VIN cutout photo
-8. THE System SHALL validate extracted VIN format (17 characters, excluding I, O, Q)
-9. THE System SHALL include OCR confidence score in the enrichment payload
-10. IF OCR extraction fails or confidence is below threshold, THE System SHALL proceed with insurer-provided VIN only
+8. THE System SHALL use the Vertex API key stored in `.env` as `GOOGLE_CLOUD_VISION_API_KEY`, bound to service account `vertexairunner@fils-glass-project.iam.gserviceaccount.com`
+9. THE System SHALL validate extracted VIN format (17 characters, excluding I, O, Q)
+10. THE System SHALL include OCR confidence score in the enrichment payload
+11. IF OCR extraction fails or confidence is below threshold, THE System SHALL proceed with insurer-provided VIN only
 
 **Geography-Based VIN Decoder Selection:**
-11. THE System SHALL support multiple VIN decoder providers based on customer geography configuration
-12. THE System SHALL support the following VIN decoder providers:
-    - Lightstone API (South Africa)
-    - NHTSA API (United States and International - free)
-13. THE System SHALL route VIN decode requests to the appropriate provider based on the customer's configured geography
-14. THE System SHALL implement a fallback strategy: if the primary decoder returns null or fails, try the secondary decoder (NHTSA)
+12. THE System SHALL support multiple VIN decoder providers based on customer geography configuration
+13. THE System SHALL support the following VIN decoder providers:
+    - Lightstone API (South Africa - primary for vehicle data)
+    - Bayanaty API (Global - fallback for vehicle data, primary for ADAS)
+    - NHTSA API (United States and International - free fallback)
+14. THE System SHALL route VIN decode requests based on customer geography:
+    - South Africa: Lightstone (primary) → Bayanaty (fallback if null/failed)
+    - Non-South Africa: Bayanaty (primary) → NHTSA (fallback if null/failed)
 
 **VIN Decode and Vehicle Data:**
 15. THE System SHALL decode the validated VIN using the geography-appropriate decoder
 16. THE System SHALL extract and store the following vehicle data from the decode response:
-    - Make (manufacturer)
-    - Model
-    - Year
+    - Make (manufacturer) - REQUIRED
+    - Model - REQUIRED
+    - Year (from BuildDate, Introduction Date, or Warranty Year)
     - Body type (if available)
-    - Color (if available from Lightstone)
+    - Color (if available)
     - Additional metadata as available
-17. IF the primary VIN decoder (Lightstone) returns null, THE System SHALL attempt decode using NHTSA API as fallback
-18. THE System SHALL always include make and model in the final insurer output, even if other fields are unavailable
+17. THE System SHALL always include make and model in the final insurer output, even if other fields are unavailable
+18. FOR South African customers, IF Lightstone returns null or fails, THE System SHALL attempt decode using Bayanaty API as fallback
+19. FOR non-South African customers, IF Bayanaty returns null or fails, THE System SHALL attempt decode using NHTSA API as fallback
+
+**Lightstone API Integration (South Africa):**
+20. THE System SHALL authenticate with Lightstone using Basic Auth (username: `nicholas@scans.ai`, password: `tiP86H6vvwb@9CA`)
+21. THE System SHALL obtain a Bearer JWT token from `POST https://liveapi.lightstoneauto.co.za/services/token`
+22. THE System SHALL call `POST https://liveapi.lightstoneauto.co.za/api/gateway` with Bearer token and JSON body containing `ClientPackageId: "1e5d9f35-f29c-4aa8-bcc7-0b60733eeb9f"` and `VinNumber`
+23. THE System SHALL parse the Lightstone response array to extract Make, Model, Year, Color, and Body shape fields by matching Description values
+
+**Bayanaty API Integration (Global):**
+24. THE System SHALL authenticate with Bayanaty using form-urlencoded credentials (Username: `Apollotest`, Password: `Apollo#9876`)
+25. THE System SHALL obtain a Bearer JWT token from `POST https://capi1.bayanaty.com/api/v1/Token`
+26. THE System SHALL call `POST https://capi1.bayanaty.com/api/v1/vehicles` with Bearer token and JSON body containing `transactionId` (UUID per request), `agentId: "string"`, and `vin`
+27. THE System SHALL parse the Bayanaty response to extract VehicleInfo fields: MakeName, ModelName, BuildDate (for year), and PaintInfo.Value (for color)
 
 **ADAS Lookup:**
-19. THE System SHALL perform ADAS (Advanced Driver Assistance Systems) lookup using the validated VIN
-20. THE System SHALL determine if the vehicle has ADAS functionality (yes/no)
-21. IF ADAS data is available, THE System SHALL include ADAS feature details in the enrichment payload
-22. THE System SHALL use ADAS presence to inform glass replacement requirements (ADAS vehicles require OEM glass with recalibration)
+28. THE System SHALL perform ADAS (Advanced Driver Assistance Systems) lookup using Bayanaty API for ALL geographies
+29. THE System SHALL extract ADAS presence from Bayanaty response field `VehicleInfo.HasAdasValues` (boolean)
+30. THE System SHALL extract ADAS features list from Bayanaty response field `VehicleInfo.AdasValues` (array)
+31. THE System SHALL determine ADAS status as: yes (HasAdasValues = true), no (HasAdasValues = false), or unknown (API call failed)
+32. THE System SHALL use ADAS presence to inform glass replacement requirements (ADAS vehicles require OEM glass with recalibration)
 
 **Error Handling and Retry Logic:**
-23. THE System SHALL implement exponential backoff retry logic for external VIN decoder API calls (max 3 retries)
-24. THE System SHALL implement exponential backoff retry logic for ADAS API calls (max 3 retries)
-25. THE System SHALL implement exponential backoff retry logic for Google Cloud Vision OCR calls (max 3 retries)
-26. IF all VIN enrichment attempts fail, THE System SHALL set VIN result state to unavailable and route to manual review
+33. THE System SHALL implement exponential backoff retry logic for external VIN decoder API calls (max 3 retries: 1s, 2s, 4s)
+34. THE System SHALL implement exponential backoff retry logic for Bayanaty ADAS API calls (max 3 retries: 1s, 2s, 4s)
+35. THE System SHALL implement exponential backoff retry logic for Google Cloud Vision OCR calls (max 3 retries: 1s, 2s, 4s)
+36. IF all VIN enrichment attempts fail, THE System SHALL set VIN result state to unavailable and route to manual review
+37. IF ADAS lookup fails after retries, THE System SHALL set ADAS status to unknown and continue processing
 
 **Event Emission:**
-27. WHEN VIN enrichment completes (success or failure), THE System SHALL emit a vin.enrichment_completed event
-28. THE System SHALL include VIN result state, decoder used, and enrichment payload in the event
+38. WHEN VIN enrichment completes (success or failure), THE System SHALL emit a vin.enrichment_completed event
+39. THE System SHALL include VIN result state, decoder(s) used, ADAS status, and enrichment payload in the event
 
 **Performance:**
-29. THE System SHALL complete VIN enrichment (OCR + decode + ADAS lookup) within 30 seconds of trigger
+40. THE System SHALL complete VIN enrichment (OCR + decode + ADAS lookup) within 30 seconds of trigger
 
 ---
 

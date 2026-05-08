@@ -377,15 +377,15 @@ type EvidenceSufficiency = 'in_progress' | 'sufficient' | 'sufficient_with_warni
 
 ### 8. VIN/Vehicle Enrichment Service
 
-Orchestrates VIN validation, OCR extraction, geography-based VIN decoding with fallback, and ADAS lookup. Uses insurer-provided VIN as primary source with OCR as validation/backup.
+Orchestrates VIN validation, OCR extraction, geography-based VIN decoding with fallback, and ADAS lookup. Uses insurer-provided VIN as primary source with OCR as validation/backup. Integrates with Lightstone (South Africa), Bayanaty (Global), and NHTSA (fallback) APIs.
 
 #### Architecture
 
 **VIN Decoder Provider Abstraction:**
 ```typescript
 interface VINDecoderProvider {
-  name: 'lightstone' | 'nhtsa';
-  geography: 'south_africa' | 'united_states' | 'international';
+  name: 'lightstone' | 'bayanaty' | 'nhtsa';
+  geography: 'south_africa' | 'global' | 'united_states' | 'international';
   decode(vin: string): Promise<VehicleData>;
 }
 
@@ -400,10 +400,10 @@ interface VehicleData {
 ```
 
 **Geography-Based Routing:**
-- Each customer/insurer has a configured geography (e.g., 'south_africa', 'united_states')
-- System routes VIN decode requests to the appropriate provider:
-  - South Africa → Lightstone API (primary), NHTSA (fallback)
-  - United States/International → NHTSA API (primary)
+- Each customer/insurer has a configured geography (e.g., 'south_africa', 'united_states', 'international')
+- System routes VIN decode requests based on geography:
+  - **South Africa:** Lightstone API (primary) → Bayanaty API (fallback)
+  - **Non-South Africa:** Bayanaty API (primary) → NHTSA API (fallback)
 - If primary decoder returns null or fails, automatically try fallback decoder
 
 **VIN Enrichment Flow:**
@@ -414,16 +414,21 @@ interface VehicleData {
    - If mismatch → use insurer VIN, set mismatch flag
    - If no insurer VIN → use OCR VIN
 
-2. **VIN Decode:**
-   - Route to geography-appropriate decoder (Lightstone or NHTSA)
+2. **VIN Decode (Geography-Based):**
+   - **South Africa:**
+     - Try Lightstone API first
+     - If null/failed → try Bayanaty API
+   - **Non-South Africa:**
+     - Try Bayanaty API first
+     - If null/failed → try NHTSA API
    - Extract vehicle data (make, model, year, body type, color)
-   - If primary decoder returns null → try fallback decoder (NHTSA)
    - Always ensure make and model are available for insurer output
 
-3. **ADAS Lookup:**
-   - Call ADAS API with validated VIN
-   - Determine ADAS presence (yes/no)
-   - Store ADAS feature details if available
+3. **ADAS Lookup (Always Bayanaty):**
+   - Call Bayanaty API with validated VIN (global provider)
+   - Extract `VehicleInfo.HasAdasValues` (boolean)
+   - Extract `VehicleInfo.AdasValues` (array of features)
+   - Determine ADAS status: yes/no/unknown
    - ADAS presence indicates OEM glass requirement
 
 4. **Result Assembly:**
@@ -440,7 +445,7 @@ interface VINEnrichmentResult {
   ocrConfidenceScore?: number;
   bestValidatedVin?: string;
   vinMismatchFlag: boolean;
-  decoderUsed: 'lightstone' | 'nhtsa' | 'fallback_nhtsa';
+  decoderUsed: 'lightstone' | 'bayanaty' | 'nhtsa' | 'lightstone+bayanaty' | 'bayanaty+nhtsa';
   vehicleData?: {
     make: string;
     model: string;
@@ -455,16 +460,73 @@ interface VINEnrichmentResult {
 }
 ```
 
-**OCR VIN Extraction (Google Cloud Vision API):**
+**API Integration Details:**
+
+**Google Cloud Vision API (OCR VIN Extraction):**
+- Endpoint: Google Cloud Vision API
+- API Key: `<stored in .env as GOOGLE_CLOUD_VISION_API_KEY>`
+- Service Account: `vertexairunner@fils-glass-project.iam.gserviceaccount.com`
 - Extract text from VIN cutout photo
 - Validate VIN format (17 characters, excluding I, O, Q)
 - Return confidence score
 - Retry up to 3 times with exponential backoff on failure
 
+**Lightstone API (South Africa - Vehicle Data):**
+- Auth Endpoint: `POST https://liveapi.lightstoneauto.co.za/services/token`
+- Auth Method: Basic Auth (username: `nicholas@scans.ai`, password: `tiP86H6vvwb@9CA`)
+- Returns: Bearer JWT token
+- VIN Decode Endpoint: `POST https://liveapi.lightstoneauto.co.za/api/gateway`
+- Request Body:
+```json
+{
+  "ClientPackageId": "1e5d9f35-f29c-4aa8-bcc7-0b60733eeb9f",
+  "VinNumber": "<vin>"
+}
+```
+- Response: Array of objects with Description/Value pairs
+- Extract: Make, Model, Year (from Warranty Year or Introduction Date), Color, Body shape
+
+**Bayanaty API (Global - Vehicle Data + ADAS):**
+- Auth Endpoint: `POST https://capi1.bayanaty.com/api/v1/Token`
+- Auth Method: Form-urlencoded (Username: `Apollotest`, Password: `Apollo#9876`)
+- Returns: Bearer JWT token
+- VIN Decode Endpoint: `POST https://capi1.bayanaty.com/api/v1/vehicles`
+- Request Body:
+```json
+{
+  "transactionId": "<uuid-per-request>",
+  "agentId": "string",
+  "vin": "<vin>"
+}
+```
+- Response:
+```json
+{
+  "VehicleInfo": {
+    "Vin": "...",
+    "MakeName": "HYUNDAI",
+    "ModelName": "I10",
+    "BuildDate": "2014-06-10",
+    "PaintInfo": {"Code": "PJW", "Value": "PURE WHITE"},
+    "HasAdasValues": false,
+    "AdasValues": []
+  },
+  "TransactionId": "string",
+  "StatusCode": 200
+}
+```
+- Extract: MakeName, ModelName, BuildDate (for year), PaintInfo.Value (for color), HasAdasValues, AdasValues
+
+**NHTSA API (US/International - Free Fallback):**
+- Endpoint: `GET https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/{vin}?format=json`
+- No authentication required
+- Extract: Make, Model, ModelYear
+- Use as fallback when Bayanaty fails for non-South African customers
+
 **Retry Logic:**
 - Up to 3 retries with exponential backoff (1s, 2s, 4s) for:
-  - VIN decoder API calls (Lightstone, NHTSA)
-  - ADAS API calls
+  - VIN decoder API calls (Lightstone, Bayanaty, NHTSA)
+  - Bayanaty ADAS API calls
   - Google Cloud Vision OCR calls
 - On exhaustion, set appropriate unavailable state and route to manual review
 

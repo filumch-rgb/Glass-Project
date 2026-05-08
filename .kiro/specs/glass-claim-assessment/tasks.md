@@ -116,39 +116,42 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
 
 - [ ] 7. Implement VIN enrichment service with geography-based routing
   - [ ] 7.1 Create VIN decoder provider abstraction and geography routing
-    - Implement VIN decoder provider interface (Lightstone, NHTSA)
+    - Implement VIN decoder provider interface (Lightstone, Bayanaty, NHTSA)
     - Add geography-based routing logic (customer configuration)
-    - Implement Lightstone API integration (South Africa)
-    - Implement NHTSA API integration (US/International - free)
-    - Add fallback strategy (primary → NHTSA if null/failed)
-    - _Requirements: 6.11, 6.12, 6.13, 6.14, 6.15, 6.16, 6.17_
+    - Implement Lightstone API integration (South Africa - vehicle data)
+    - Implement Bayanaty API integration (Global - vehicle data + ADAS)
+    - Implement NHTSA API integration (US/International - free fallback)
+    - Add fallback strategy: South Africa (Lightstone → Bayanaty), Non-SA (Bayanaty → NHTSA)
+    - _Requirements: 6.12, 6.13, 6.14, 6.18, 6.19, 6.20, 6.21, 6.22, 6.23, 6.24, 6.25, 6.26, 6.27_
 
   - [ ] 7.2 Implement OCR VIN extraction with Google Cloud Vision API
     - Integrate Google Cloud Vision API for VIN cutout photo OCR
+    - Use Vertex API key from `.env` (GOOGLE_CLOUD_VISION_API_KEY)
     - Add VIN format validation (17 chars, exclude I, O, Q)
     - Extract and store OCR confidence score
     - Implement VIN source priority (insurer VIN primary, OCR backup)
     - Add VIN mismatch detection and flagging
-    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10_
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10, 6.11_
 
-  - [ ] 7.3 Implement ADAS lookup and retry logic
-    - Add ADAS API integration with validated VIN
-    - Determine ADAS presence (yes/no) and features
+  - [ ] 7.3 Implement ADAS lookup with Bayanaty API
+    - Add Bayanaty ADAS API integration (global provider for all geographies)
+    - Extract HasAdasValues (boolean) and AdasValues (array) from Bayanaty response
+    - Determine ADAS status (yes/no/unknown)
     - Implement exponential backoff retry for all external APIs (3 retries: 1s, 2s, 4s)
     - Add error handling and unavailable state management
     - Ensure make and model always available in output
-    - _Requirements: 6.19, 6.20, 6.21, 6.22, 6.23, 6.24, 6.25, 6.26_
+    - _Requirements: 6.28, 6.29, 6.30, 6.31, 6.32, 6.33, 6.34, 6.35, 6.36, 6.37_
 
   - [ ] 7.4 Integration test - VIN enrichment with geography routing
-    - Test geography-based decoder selection
-    - Test fallback strategy (Lightstone → NHTSA)
+    - Test geography-based decoder selection (South Africa: Lightstone → Bayanaty, Non-SA: Bayanaty → NHTSA)
+    - Test fallback strategy execution
     - Test VIN result state derivation (validated, ocr_only, insurer_only, mismatch, unavailable)
     - Test VIN mismatch handling (use insurer VIN, set flag)
     - Test retry logic and error handling
     - Test OCR extraction and confidence scoring
-    - Test ADAS lookup integration
+    - Test ADAS lookup integration with Bayanaty
     - Test event emission (vin.enrichment_completed)
-    - _Requirements: 6.6, 6.27, 6.28, 6.29_
+    - _Requirements: 6.6, 6.38, 6.39, 6.40_
 
 - [ ] 8. Implement damage analysis service
   - [ ] 8.1 Create structured damage analysis
