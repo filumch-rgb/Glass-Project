@@ -114,8 +114,8 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Test camera-only enforcement
     - _Requirements: 3.6, 4.7_
 
-- [ ] 7. Implement VIN enrichment service with geography-based routing
-  - [ ] 7.1 Create VIN decoder provider abstraction and geography routing
+- [x] 7. Implement VIN enrichment service with geography-based routing
+  - [x] 7.1 Create VIN decoder provider abstraction and geography routing
     - Implement VIN decoder provider interface (Lightstone, Bayanaty, NHTSA)
     - Add geography-based routing logic (customer configuration)
     - Implement Lightstone API integration (South Africa - vehicle data)
@@ -124,7 +124,7 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Add fallback strategy: South Africa (Lightstone → Bayanaty), Non-SA (Bayanaty → NHTSA)
     - _Requirements: 6.12, 6.13, 6.14, 6.18, 6.19, 6.20, 6.21, 6.22, 6.23, 6.24, 6.25, 6.26, 6.27_
 
-  - [ ] 7.2 Implement OCR VIN extraction with Google Cloud Vision API
+  - [x] 7.2 Implement OCR VIN extraction with Google Cloud Vision API
     - Integrate Google Cloud Vision API for VIN cutout photo OCR
     - Use Vertex API key from `.env` (GOOGLE_CLOUD_VISION_API_KEY)
     - Add VIN format validation (17 chars, exclude I, O, Q)
@@ -133,7 +133,7 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Add VIN mismatch detection and flagging
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10, 6.11_
 
-  - [ ] 7.3 Implement ADAS lookup with Bayanaty API
+  - [x] 7.3 Implement ADAS lookup with Bayanaty API
     - Add Bayanaty ADAS API integration (global provider for all geographies)
     - Extract HasAdasValues (boolean) and AdasValues (array) from Bayanaty response
     - Determine ADAS status (yes/no/unknown)
@@ -142,7 +142,7 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Ensure make and model always available in output
     - _Requirements: 6.28, 6.29, 6.30, 6.31, 6.32, 6.33, 6.34, 6.35, 6.36, 6.37_
 
-  - [ ] 7.4 Integration test - VIN enrichment with geography routing
+  - [x] 7.4 Integration test - VIN enrichment with geography routing
     - Test geography-based decoder selection (South Africa: Lightstone → Bayanaty, Non-SA: Bayanaty → NHTSA)
     - Test fallback strategy execution
     - Test VIN result state derivation (validated, ocr_only, insurer_only, mismatch, unavailable)
@@ -153,28 +153,40 @@ This implementation plan builds the Glass Claim Assessment System incrementally 
     - Test event emission (vin.enrichment_completed)
     - _Requirements: 6.6, 6.38, 6.39, 6.40_
 
-- [ ] 8. Implement damage analysis service
-  - [ ] 8.1 Create structured damage analysis
+- [x] 8. Implement damage analysis service
+  - [x] 8.1 Create structured damage analysis
     - Implement damage analysis for accepted damage photos
     - Return structured damage findings with confidence scores
     - Add evidence sufficiency assessment
     - Include uncertainty and insufficiency indicators
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-  - [ ] 8.2 Integration test - Damage analysis
+  - [x] 8.2 Integration test - Damage analysis
     - Test structured output format and confidence scoring
     - Test evidence sufficiency assessment logic
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 9. Implement decision rules engine
-  - [ ] 9.1 Create deterministic decision engine
+  - [x] 8.3 Implement glass type and brand analysis
+    - Create glass type analysis service for logo/silkscreen photo
+    - Use Gemini Vision to identify glass manufacturer brand (AGC, Pilkington, Saint-Gobain, Fuyao, Xinyi, etc.)
+    - Detect OEM vs Aftermarket classification (OEM = vehicle manufacturer logo/name present)
+    - Return structured output with glass brand, type (OEM/Aftermarket), and confidence score
+    - Integrate with claim processing workflow (runs in parallel with damage analysis)
+    - Add event emission (glass_analysis.completed/failed)
+    - _Requirements: 3.1 (logo/silkscreen photo), 6.32 (ADAS requires OEM glass)_
+    - Test structured output format and confidence scoring
+    - Test evidence sufficiency assessment logic
+    - _Requirements: 7.1, 7.2, 7.3, 7.4_
+
+- [x] 9. Implement decision rules engine
+  - [x] 9.1 Create deterministic decision engine
     - Implement prerequisite checks for all decision criteria
     - Add deterministic repair/replace/manual_review logic
     - Ensure blocked prerequisites prevent repair/replace outcomes
     - Include structured justification and confidence summary
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
-  - [ ] 9.2 Integration test - Decision engine
+  - [x] 9.2 Integration test - Decision engine
     - Test prerequisite blocking of repair/replace decisions
     - Test decision engine determinism
     - Test prerequisite check evaluation

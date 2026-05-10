@@ -98,9 +98,17 @@ interface Config {
   assessment: {
     confidenceThreshold: number;
     maxApiRetries: number;
+    rulesVersion: string;
     retryInitialDelayMs: number;
     journeyTokenExpiresHours: number;
     photoValidationTimeoutMinutes: number;
+  };
+
+  // Damage Analysis
+  damageAnalysis: {
+    confidenceThreshold: number;
+    model: string;
+    maxRetries: number;
   };
 
   // Logging
@@ -223,9 +231,16 @@ export const config: Config = {
   assessment: {
     confidenceThreshold: parseFloat(process.env.CONFIDENCE_THRESHOLD || '0.7'),
     maxApiRetries: parseInt(process.env.MAX_API_RETRIES || '3', 10),
+    rulesVersion: process.env.RULES_VERSION || '1.0.0',
     retryInitialDelayMs: parseInt(process.env.RETRY_INITIAL_DELAY_MS || '1000', 10),
     journeyTokenExpiresHours: parseInt(process.env.JOURNEY_TOKEN_EXPIRES_HOURS || '24', 10),
     photoValidationTimeoutMinutes: parseInt(process.env.PHOTO_VALIDATION_TIMEOUT_MINUTES || '10', 10),
+  },
+
+  damageAnalysis: {
+    confidenceThreshold: parseFloat(process.env.DAMAGE_ANALYSIS_CONFIDENCE_THRESHOLD || '0.7'),
+    model: process.env.DAMAGE_ANALYSIS_MODEL || 'gemini-1.5-pro',
+    maxRetries: parseInt(process.env.DAMAGE_ANALYSIS_MAX_RETRIES || '3', 10),
   },
 
   logging: {
