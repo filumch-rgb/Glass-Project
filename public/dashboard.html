@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glass Claims Dashboard - Insurer Portal</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen" class="login-container">
+    <div class="login-box">
+      <h1>🔐 Insurer Dashboard</h1>
+      <p>Enter your access code to continue</p>
+      <form id="loginForm">
+        <input 
+          type="password" 
+          id="accessCodeInput" 
+          placeholder="Access Code" 
+          required 
+          autocomplete="off"
+        />
+        <button type="submit">Access Dashboard</button>
+      </form>
+      <div id="loginError" class="error-message" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Dashboard Screen -->
+  <div id="dashboardScreen" style="display: none;">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <h1>📊 Glass Claims Dashboard</h1>
+        <div class="header-actions">
+          <span id="lastRefresh" class="last-refresh">Last updated: --:--</span>
+          <button id="refreshBtn" class="btn-secondary">🔄 Refresh</button>
+          <button id="logoutBtn" class="btn-secondary">🚪 Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Metrics Section -->
+    <section class="metrics-section">
+      <div class="metric-card">
+        <div class="metric-label">Total Claims</div>
+        <div class="metric-value" id="metricTotalClaims">--</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Avg Turnaround</div>
+        <div class="metric-value" id="metricAvgTurnaround">-- hrs</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Automated Decisions<br><small style="font-size: 11px; color: #999;">(without manual review)</small></div>
+        <div class="metric-value" id="metricAutomationRate">--%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Manual Review Queue</div>
+        <div class="metric-value" id="metricManualQueue">--</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Override Rate</div>
+        <div class="metric-value" id="metricOverrideRate">--%</div>
+      </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-section">
+      <div class="filters-container">
+        <div class="filter-group">
+          <label for="filterStatus">Status:</label>
+          <select id="filterStatus">
+            <option value="">All Statuses</option>
+            <option value="Message Sent">Message Sent</option>
+            <option value="Photos In Progress">Photos In Progress</option>
+            <option value="Processing">Processing</option>
+            <option value="Result Ready">Result Ready</option>
+            <option value="Needs Action">Needs Action</option>
+            <option value="Abandoned">Abandoned</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label for="filterDecision">Decision:</label>
+          <select id="filterDecision">
+            <option value="">All Decisions</option>
+            <option value="repair">Repair</option>
+            <option value="replace">Replace</option>
+            <option value="needs_manual_review">Manual Review</option>
+            <option value="insufficient_evidence">Insufficient Evidence</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label for="filterDateFrom">From:</label>
+          <input type="date" id="filterDateFrom" />
+        </div>
+        
+        <div class="filter-group">
+          <label for="filterDateTo">To:</label>
+          <input type="date" id="filterDateTo" />
+        </div>
+        
+        <button id="applyFiltersBtn" class="btn-primary">Apply Filters</button>
+        <button id="clearFiltersBtn" class="btn-secondary">Clear</button>
+        <button id="exportCsvBtn" class="btn-secondary">📥 Export CSV</button>
+        <button id="exportJsonBtn" class="btn-secondary">📥 Export JSON</button>
+      </div>
+    </section>
+
+    <!-- Claims Table -->
+    <section class="table-section">
+      <div class="table-header">
+        <h2>Claims List</h2>
+        <div id="claimsCount" class="claims-count">Loading...</div>
+      </div>
+      
+      <div class="table-container">
+        <table id="claimsTable">
+          <thead>
+            <tr>
+              <th>Claim #</th>
+              <th>Policyholder</th>
+              <th>Date Sent</th>
+              <th>Date Received</th>
+              <th>Days</th>
+              <th>Status</th>
+              <th>Confidence</th>
+              <th>Decision</th>
+              <th>Reason</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="claimsTableBody">
+            <tr>
+              <td colspan="10" class="loading-cell">Loading claims...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Claim Detail Modal -->
+  <div id="claimDetailModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Claim Details</h2>
+        <button class="modal-close" onclick="closeClaimDetailModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="claimDetailBody">
+        Loading...
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Review Modal -->
+  <div id="manualReviewModal" class="modal" style="display: none;">
+    <div class="modal-content modal-small">
+      <div class="modal-header">
+        <h2>Trigger Manual Review</h2>
+        <button class="modal-close" onclick="closeManualReviewModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="manualReviewForm">
+          <input type="hidden" id="reviewClaimId" />
+          
+          <div class="form-group">
+            <label for="reviewReason">Reason for Manual Review:</label>
+            <select id="reviewReason" required>
+              <option value="">Select a reason...</option>
+              <option value="Low confidence score">Low confidence score</option>
+              <option value="Complex damage pattern">Complex damage pattern</option>
+              <option value="Quality assurance check">Quality assurance check</option>
+              <option value="Customer request">Customer request</option>
+              <option value="Policy exception">Policy exception</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="reviewPriority">Priority:</label>
+            <select id="reviewPriority">
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+              <option value="training">Training</option>
+            </select>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Submit for Review</button>
+            <button type="button" class="btn-secondary" onclick="closeManualReviewModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

@@ -11,6 +11,7 @@ import { rateLimiter } from './middleware/rateLimiter';
 import claimSubmissionRouter from './routes/claimSubmission';
 import consentRouter from './routes/consent';
 import photosRouter from './routes/photos';
+import dashboardRouter from './routes/dashboard';
 
 class App {
   public app: express.Application;
@@ -150,9 +151,17 @@ class App {
     // Photo routes - mounted directly on /api
     this.app.use('/api', photosRouter);
 
+    // Dashboard routes - mounted directly on /api
+    this.app.use('/api/dashboard', dashboardRouter);
+
     // Journey page route - serve journey.html for /journey/:token
     this.app.get('/journey/:token', (req, res) => {
       res.sendFile(path.join(__dirname, '../public/journey.html'));
+    });
+
+    // Dashboard page route - serve dashboard.html for /dashboard
+    this.app.get('/dashboard', (req, res) => {
+      res.sendFile(path.join(__dirname, '../public/dashboard.html'));
     });
 
     // 404 handler

@@ -252,8 +252,8 @@ describe('DecisionRulesEngine', () => {
 
       expect(result.outcome).toBe('repair');
       expect(result.decisionEligible).toBe(true);
-      expect(result.justification).toContain('Repair eligible');
-      expect(result.justification).toContain('bullseye');
+      expect(result.justification).toContain('Repair');
+      expect(result.justification).toContain('Bullseye');
     });
 
     it('should decide repair for multiple repairable damage points', async () => {
@@ -273,8 +273,8 @@ describe('DecisionRulesEngine', () => {
       const result = await engine.generateDecision(inputs);
 
       expect(result.outcome).toBe('repair');
-      expect(result.justification).toContain('bullseye');
-      expect(result.justification).toContain('crack');
+      expect(result.justification).toContain('Bullseye');
+      expect(result.justification).toContain('Crack');
     });
   });
 
@@ -293,8 +293,8 @@ describe('DecisionRulesEngine', () => {
 
       expect(result.outcome).toBe('replace');
       expect(result.decisionEligible).toBe(true);
-      expect(result.justification).toContain('Replacement required');
-      expect(result.justification).toContain('damage_too_large');
+      expect(result.justification).toContain('Replace');
+      expect(result.justification).toContain('exceeds repairable size');
     });
 
     it('should decide replace when any damage point is non-repairable', async () => {
@@ -317,7 +317,7 @@ describe('DecisionRulesEngine', () => {
       const result = await engine.generateDecision(inputs);
 
       expect(result.outcome).toBe('replace');
-      expect(result.justification).toContain('penetrates_both_layers');
+      expect(result.justification).toContain('penetrates both layers');
     });
   });
 
@@ -369,7 +369,7 @@ describe('DecisionRulesEngine', () => {
 
       expect(result.outcome).toBe('needs_manual_review');
       expect(result.decisionEligible).toBe(true);
-      expect(result.justification).toContain('No clear damage points identified');
+      expect(result.justification).toContain('No clear damage identified');
     });
 
     it('should return insufficient_evidence when evidence is insufficient', async () => {
@@ -522,8 +522,8 @@ describe('DecisionRulesEngine', () => {
 
       const result = await engine.generateDecision(inputs);
 
-      expect(result.justification).toContain('Repair eligible');
-      expect(result.justification).toContain('repairable');
+      expect(result.justification).toContain('Repair');
+      expect(result.justification).toContain('Bullseye');
     });
 
     it('should provide clear justification for replace decision', async () => {
@@ -533,8 +533,8 @@ describe('DecisionRulesEngine', () => {
 
       const result = await engine.generateDecision(inputs);
 
-      expect(result.justification).toContain('Replacement required');
-      expect(result.justification).toContain('damage_too_large');
+      expect(result.justification).toContain('Replace');
+      expect(result.justification).toContain('exceeds repairable size');
     });
 
     it('should provide clear justification for blocked decision', async () => {

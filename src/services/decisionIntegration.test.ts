@@ -501,7 +501,7 @@ describe('Decision Rules Engine - Integration Tests', () => {
       expect(result.outcome).toBe('repair');
       expect(result.decisionEligible).toBe(true);
       expect(result.blockingReasons).toHaveLength(0);
-      expect(result.justification).toContain('Repair eligible');
+      expect(result.justification).toContain('Repair');
       expect(result.confidenceSummary.damageAnalysis).toBe(0.92);
       expect(result.confidenceSummary.glassTypeAnalysis).toBe(0.95);
       expect(result.confidenceSummary.vinOcr).toBe(0.98);
@@ -572,8 +572,8 @@ describe('Decision Rules Engine - Integration Tests', () => {
       expect(result.outcome).toBe('replace');
       expect(result.decisionEligible).toBe(true);
       expect(result.blockingReasons).toHaveLength(0);
-      expect(result.justification).toContain('Replacement required');
-      expect(result.justification).toContain('penetrates_both_layers');
+      expect(result.justification).toContain('Replace');
+      expect(result.justification).toContain('penetrates both layers');
     });
   });
 });

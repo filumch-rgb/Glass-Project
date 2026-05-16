@@ -168,6 +168,76 @@ export class EmailIntakeService {
   }
 
   /**
+   * Send notification with retry logic
+   * Implements exponential backoff: 1s, 2s, 4s
+   * Private helper for createClaim
+   */
+  private static async sendNotificationWithRetry(
+    claimId: string,
+    claimNumber: string,
+    policyholderName: string,
+    policyholderMobile: string,
+    journeyLink: string
+  ): Promise<{ status: 'sent' | 'pending' | 'failed'; error?: string }> {
+    const maxRetries = 3;
+    const delays = [1000, 2000, 4000]; // milliseconds
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        // Import notification service dynamically to avoid circular dependency
+        const { notificationService } = await import('./notificationService');
+
+        const result = await notificationService.sendNotification({
+          claimId,
+          claimNumber,
+          policyholderName,
+          policyholderMobile,
+          journeyLink,
+          channel: 'sms', // Default to SMS
+        });
+
+        if (result.status === 'sent') {
+          loggers.app.info('Notification sent successfully', {
+            claimId,
+            attempt: attempt + 1,
+          });
+          return { status: 'sent' };
+        }
+
+        // If failed, log and retry
+        loggers.app.warn('Notification attempt failed', {
+          claimId,
+          attempt: attempt + 1,
+          error: result.errorMessage,
+        });
+
+        // Wait before retry (except on last attempt)
+        if (attempt < maxRetries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
+        }
+      } catch (error) {
+        loggers.app.error('Notification attempt error', error as Error, {
+          claimId,
+          attempt: attempt + 1,
+        });
+
+        // Wait before retry (except on last attempt)
+        if (attempt < maxRetries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
+        }
+      }
+    }
+
+    // All retries failed
+    loggers.app.error('All notification attempts failed', new Error('Max retries exceeded'), {
+      claimId,
+      maxRetries,
+    });
+
+    return { status: 'failed', error: 'Max retries exceeded' };
+  }
+
+  /**
    * Create claim record in database
    * Public for testing
    */
@@ -250,6 +320,65 @@ export class EmailIntakeService {
         insurerId: insurerId,
         insurerName: fields.insurerName,
       });
+
+      // Create journey token and link
+      let journeyLink = '';
+      let notificationStatus: 'sent' | 'pending' | 'failed' = 'pending';
+
+      try {
+        // Import journey service dynamically to avoid circular dependency
+        const { journeyService } = await import('./journeyService');
+
+        const journeyResult = await journeyService.createJourney({
+          claimId,
+          channel: 'pwa',
+          sessionMetadata: {
+            source: 'email-intake',
+            insurerId,
+          },
+        });
+
+        journeyLink = journeyResult.journeyLink;
+
+        loggers.app.info('Journey created for claim', {
+          claimId,
+          journeyId: journeyResult.journeyId,
+          expiresAt: journeyResult.expiresAt,
+        });
+
+        // Send notification with retry logic
+        const notificationResult = await this.sendNotificationWithRetry(
+          claimId,
+          fields.claimNumber,
+          fields.policyholderName,
+          fields.policyholderMobile,
+          journeyLink
+        );
+
+        notificationStatus = notificationResult.status;
+
+        if (notificationStatus === 'sent') {
+          loggers.app.info('Notification sent to policyholder', {
+            claimId,
+            claimNumber: fields.claimNumber,
+          });
+        } else {
+          loggers.app.error(
+            'Failed to send notification after retries',
+            new Error(notificationResult.error || 'Unknown error'),
+            {
+              claimId,
+              claimNumber: fields.claimNumber,
+            }
+          );
+        }
+      } catch (error) {
+        loggers.app.error('Failed to create journey or send notification', error as Error, {
+          claimId,
+          claimNumber: fields.claimNumber,
+        });
+        notificationStatus = 'failed';
+      }
 
       return {
         claimId,

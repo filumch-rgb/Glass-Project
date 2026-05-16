@@ -454,32 +454,135 @@ export class DecisionRulesEngine {
         const attrs = point.severityAttributes as {
           repairBlockingReasons?: string[];
           damageType?: string;
+          estimatedDiameterInches?: number;
+          estimatedLengthInches?: number;
+          inDPVA?: boolean;
         };
-        return attrs.repairBlockingReasons?.join(', ') || 'damage not repairable';
+        return this.buildReplaceReason(attrs);
       });
 
       return {
         outcome: 'replace',
-        justification: `Replacement required. Non-repairable damage detected: ${reasons.join('; ')}`,
+        justification: `Replace: ${reasons.join('; ')}`,
       };
     } else if (repairEligibleDamage.length > 0) {
       // All damage is repairable → Repair
-      const damageTypes = repairEligibleDamage.map((point) => {
-        const attrs = point.severityAttributes as { damageType?: string };
-        return attrs.damageType || 'unknown';
+      const reasons = repairEligibleDamage.map((point) => {
+        const attrs = point.severityAttributes as {
+          damageType?: string;
+          estimatedDiameterInches?: number;
+          estimatedLengthInches?: number;
+          inDPVA?: boolean;
+        };
+        return this.buildRepairReason(attrs);
       });
 
       return {
         outcome: 'repair',
-        justification: `Repair eligible. All damage points are repairable: ${damageTypes.join(', ')}`,
+        justification: `Repair: ${reasons.join('; ')}`,
       };
     } else {
       // No damage points or unclear damage → Manual review
       return {
         outcome: 'needs_manual_review',
-        justification: 'No clear damage points identified. Manual review required.',
+        justification: 'No clear damage identified, manual review required.',
       };
     }
+  }
+
+  /**
+   * Build a human-readable repair reason referencing ROLAGS criteria
+   */
+  private buildRepairReason(attrs: {
+    damageType?: string;
+    estimatedDiameterInches?: number;
+    estimatedLengthInches?: number;
+    inDPVA?: boolean;
+  }): string {
+    const type = this.formatDamageType(attrs.damageType);
+    const location = attrs.inDPVA ? 'in DPVA' : 'outside DPVA';
+    const size = this.formatSize(attrs);
+
+    if (size) {
+      return `${type} ${size}, ${location}`;
+    }
+    return `${type}, ${location}`;
+  }
+
+  /**
+   * Build a human-readable replace reason referencing ROLAGS criteria
+   */
+  private buildReplaceReason(attrs: {
+    repairBlockingReasons?: string[];
+    damageType?: string;
+    estimatedDiameterInches?: number;
+    estimatedLengthInches?: number;
+    inDPVA?: boolean;
+  }): string {
+    const type = this.formatDamageType(attrs.damageType);
+    const location = attrs.inDPVA ? 'in DPVA' : 'outside DPVA';
+    const size = this.formatSize(attrs);
+    const blocking = this.formatBlockingReasons(attrs.repairBlockingReasons || []);
+
+    const parts = [type];
+    if (size) parts.push(size);
+    parts.push(location);
+    if (blocking) parts.push(`— ${blocking}`);
+
+    return parts.join(', ');
+  }
+
+  /**
+   * Format damage type for display
+   */
+  private formatDamageType(damageType?: string): string {
+    const map: Record<string, string> = {
+      bullseye: 'Bullseye',
+      star_break: 'Star break',
+      combination_break: 'Combination break',
+      half_moon: 'Half-moon',
+      crack: 'Crack',
+      surface_pit: 'Surface pit',
+      unknown: 'Unidentified damage',
+    };
+    return map[damageType || 'unknown'] || damageType || 'Unidentified damage';
+  }
+
+  /**
+   * Format size measurement for display
+   */
+  private formatSize(attrs: {
+    estimatedDiameterInches?: number;
+    estimatedLengthInches?: number;
+  }): string {
+    if (attrs.estimatedDiameterInches != null) {
+      return `~${attrs.estimatedDiameterInches}" diameter`;
+    }
+    if (attrs.estimatedLengthInches != null) {
+      return `~${attrs.estimatedLengthInches}" long`;
+    }
+    return '';
+  }
+
+  /**
+   * Format blocking reasons into concise human-readable text
+   */
+  private formatBlockingReasons(reasons: string[]): string {
+    const map: Record<string, string> = {
+      damage_too_large: 'exceeds repairable size',
+      dpva_restriction: 'DPVA size limit exceeded',
+      penetrates_both_layers: 'penetrates both layers',
+      inside_layer_damage: 'inside layer damaged',
+      contaminated: 'contaminated',
+      interlayer_damage: 'interlayer damaged',
+      edge_crack: 'edge crack spans multiple edges',
+      stress_crack: 'stress crack (no impact)',
+      multiple_long_cracks: '3+ long cracks from one impact',
+      pit_too_large: 'pit >3/8"',
+    };
+
+    const formatted = reasons.map((r) => map[r] || r);
+    return formatted.join(', ');
   }
 
   /**
